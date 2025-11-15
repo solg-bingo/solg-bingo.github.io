@@ -503,11 +503,13 @@ function endQuizReceptionAndJudge() {
             resultElement.textContent = `❌ 正解者はいませんでした... (正解: ${correctMark})`;
             resultElement.style.color = 'red';
           // ローカルとFirebaseの状態を完全に初期化し、抽選に進めるようにする
+          // ★★★ 最終対策: 5秒間待ってからリセットを実行 ★★★
+            setTimeout(() => {
             currentQuiz = null;
             resetQuizState();
-
-            document.getElementById('quiz-trigger-button').disabled = false;
-            document.getElementById('draw-next-button').disabled = false;
+　　　　　　　　　document.getElementById('quiz-trigger-button').disabled = false;
+                document.getElementById('draw-next-button').disabled = false;
+            }, 5000); // 5秒間結果を画面に固定
         }
         
         // 4. クイズ終了後の回答ドキュメントの削除 (重要)
@@ -574,4 +576,5 @@ function resetGame() {
     });
 
 }
+
 
