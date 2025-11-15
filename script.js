@@ -502,6 +502,8 @@ function endQuizReceptionAndJudge() {
         } else {
             resultElement.textContent = `❌ 正解者はいませんでした... (正解: ${correctMark})`;
             resultElement.style.color = 'red';
+          // ローカルとFirebaseの状態を完全に初期化し、抽選に進めるようにする
+            resetQuizState();
 
             document.getElementById('quiz-trigger-button').disabled = false;
             document.getElementById('draw-next-button').disabled = false;
@@ -569,4 +571,5 @@ function resetGame() {
     .catch(error => {
         console.error("ゲームリセット失敗:", error);
     });
+
 }
