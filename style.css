@@ -16,34 +16,38 @@ button {
     cursor: pointer;
 }
 /* ビンゴカードのスタイル */
-/* カードエリアの全体幅を調整 (スマホで収まるように) */
 .bingo-card-3x3 {
     border-collapse: collapse;
-    /* 幅を固定値から相対値に変更し、画面幅の90%に設定 */
-    width: 90vw; /* viewport width の90% */
-    max-width: 350px; /* あまり大きくなりすぎないように最大幅を設定 */
-    margin: 20px auto;
+    /* 幅を90vwから80vwに縮小 */
+    width: 80vw; 
+    /* 最大幅を350pxから300pxに縮小 */
+    max-width: 300px; 
+    margin: 15px auto; /* マージンも少し減らす */
 }
+
 /* マス（セル）のサイズを調整 */
 .bingo-cell {
     border: 3px solid #333;
-    /* widthとheightを自動で均等割り(calc)にするか、vh/vwで制御 */
-    width: 30vw;
-    height: 30vw; 
-    max-width: 110px;
-    max-height: 110px;
-    font-size: 0.9em; /* フォントを少し小さく */
+    /* 幅と高さを25vwに縮小 */
+    width: 25vw;
+    height: 25vw; 
+    /* 最大幅を110pxから100pxに縮小 */
+    max-width: 100px;
+    max-height: 100px;
+    font-size: 0.85em; /* フォントをさらに少し小さく */
     text-align: center;
     font-weight: bold;
     cursor: pointer;
     background-color: #fff;
     transition: background-color 0.2s;
 }
+
 /* ぐーちょきぱーボタンのサイズ調整 */
 #player-quiz-answer-section button {
-    font-size: 1.5em; /* ボタン内のアイコンサイズを調整 */
-    padding: 10px 15px; /* パディングを調整 */
-    margin: 5px;
+    /* アイコンサイズを1.5emから1.3emに縮小 */
+    font-size: 1.3em; 
+    padding: 8px 12px; /* パディングを調整 */
+    margin: 4px;
 }
 /* マークされたマスのスタイル */
 .marked {
@@ -98,3 +102,4 @@ button {
     cursor: default; /* カーソルをデフォルトにして、操作不能を示す */
 
 }
+
