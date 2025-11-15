@@ -1,0 +1,86 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 10px;
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+/* ビンゴカードのスタイル */
+.bingo-card-3x3 {
+    border-collapse: collapse;
+    width: 300px;
+    margin: 20px auto;
+}
+.bingo-cell {
+    border: 3px solid #333;
+    width: 100px;
+    height: 100px;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #fff;
+    transition: background-color 0.2s;
+}
+/* マークされたマスのスタイル */
+.marked {
+    background-color: #4CAF50; /* 緑色 */
+    color: white;
+}
+/* 履歴ボックス */
+.history-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-height: 100px;
+    overflow-y: scroll;
+    width: 90%;
+    margin: 0 auto;
+    text-align: left;
+    white-space: nowrap;
+}
+/* クイズボックス */
+.quiz-box {
+    border: 2px solid red;
+    padding: 20px;
+    margin: 20px auto;
+    width: 90%;
+    background-color: #fff0f0;
+}
+.bonus-box {
+    border: 2px dashed #007bff;
+    background-color: #f0f8ff;
+    padding: 15px;
+}
+#quiz-input-section button {
+    margin: 0 5px;
+}
+
+/* 回答が送信されたボタンのスタイル */
+.answered {
+    background-color: #dc3545 !important; /* 赤色に変更 */
+    color: white !important;
+    border: 3px solid #b21f2d; /* 濃い赤色の枠線 */
+    transition: background-color 0.3s;
+}
+
+/* クリック遮断用オーバーレイのスタイル */
+#click-blocker {
+    /* 画面全体を覆い、最前面に表示 */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000; /* 非常に高い値にして、確実にボタンを覆う */
+    cursor: default; /* カーソルをデフォルトにして、操作不能を示す */
+}

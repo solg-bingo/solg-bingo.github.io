@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>3x3 自治体ビンゴ (Firebase)</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+</head>
+<body>
+    <h1 style="text-align: center;">自治体ビンゴ</h1>
+
+    <div id="master-only">
+        <h2 style="text-align: center;">親機コントロールパネル</h2>
+        <div id="master-area" style="text-align: center; margin: 20px auto; max-width: 600px;">
+
+<div id="draw-machine">
+    <h3 style="color: #007bff;">現在の抽選結果</h3>
+    <div id="current-draw" style="font-size: 3em; font-weight: bold; margin: 10px 0;">---</div>
+    
+    <button id="draw-next-button" style="background-color: #007bff;">次を引く！</button>
+    
+    <button id="quiz-trigger-button" style="background-color: #ff6666; margin-left: 10px;">クイズを出題する！</button>
+    
+    <h3 style="margin-top: 20px;">抽選履歴</h3>
+    <div id="history-list" class="history-box"></div>
+</div>
+
+
+
+            <div id="quiz-area" class="quiz-box" style="display: none;">
+                <h2>💡 スペシャルクイズ 💡</h2>
+                <p id="quiz-question" style="font-size: 1.5em;"></p>
+                <p id="quiz-hint" style="font-size: 1.1em; color: gray;"></p>
+                <p id="quiz-result" style="margin-top: 10px; font-weight: bold;"></p>
+
+                <div id="quiz-control-section" style="margin-top: 15px;">
+                    <button onclick="endQuizReceptionAndJudge()" style="background-color: #0044aa;">回答受付を終了し判定する</button>
+                    <p id="first-answer-display" style="margin-top: 10px; font-weight: bold; color: blue;"></p>
+                </div>
+
+                <div id="bonus-section" class="bonus-box" style="display: none;">
+                    <h3>🎉 当選者ボーナス！</h3>
+                    <label for="bonus-prefecture-input">開けたい自治体名：</label>
+                    <input type="text" id="bonus-prefecture-input" placeholder="例: 千代田区">
+                    <button onclick="applyBonusDraw()" style="background-color: #007bff;">このマスを開ける</button>
+                    <p id="bonus-message" style="color: red;"></p>
+                </div>
+            </div>
+        </div>
+        <hr style="margin: 40px 0;">
+    </div>
+    
+<div id="player-only">
+        <h2 style="text-align: center;">あなたのビンゴカード</h2>
+        
+        <div id="user-id-input-area" style="text-align: center; margin-bottom: 15px;">
+            <label for="user-id-field">あなたのID (ニックネーム):</label>
+            <input type="text" id="user-id-field" placeholder="例: エビナ" maxlength="15" style="padding: 5px; border: 1px solid #ccc;">
+            <button onclick="setUserId()" style="background-color: #5cb85c; padding: 5px 10px;">設定</button>
+            <p id="current-user-id" style="font-size: 0.9em; margin-top: 5px;"></p>
+        </div>
+        <div id="card-area" style="text-align: center;">
+            <div id="card-container">
+            </div>
+            <p id="bingo-status" style="font-size: 1.5em; font-weight: bold; color: darkred; margin-top: 20px;">リーチ：0 / ビンゴ：0</p>
+            
+            <div id="player-quiz-answer-section" style="margin-top: 20px; display: none; position: relative;">
+                <div id="click-blocker" style="display: none;"></div>
+                <h3>クイズに回答！</h3>
+                <button onmousedown="submitQuizAnswer('ぐー', event)" style="font-size: 2em; padding: 10px 20px;">✊</button>
+                <button onmousedown="submitQuizAnswer('ちょき', event)" style="font-size: 2em; padding: 10px 20px;">✌️</button>
+                <button onmousedown="submitQuizAnswer('ぱー', event)" style="font-size: 2em; padding: 10px 20px;">✋</button>
+                <p id="player-quiz-message"></p>
+            </div>
+            </div>
+    </div>
+    <script>
+        // ★★★ YOUR_FIREBASE_CONFIG をあなたの設定に置き換えてください ★★★
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPNVGO5Cy8jXbRfImiQc3CBE3fW5R7Ma4",
+            authDomain: "bonenkaibingo.firebaseapp.com",
+            projectId: "bonenkaibingo",
+            // ... その他の設定をここにペースト ...
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const gameRef = db.collection('bingo').doc('gameState');
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
