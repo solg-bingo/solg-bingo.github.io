@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (role === 'master') {
         currentRole = 'master';
 // 親機の場合、masterArea を表示し、playerArea を非表示
-        //if (masterArea) masterArea.style.display = 'block'; 
+        if (masterArea) masterArea.style.display = 'block'; 
         if (playerArea) playerArea.style.display = 'none';
 
 // ★★★ 修正箇所：親機起動時のFirebase状態の初期化 ★★★
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRole = 'player';
 // 子機の場合、masterArea を非表示にし、playerArea を表示
         if (masterArea) masterArea.style.display = 'none';
-        //if (playerArea) playerArea.style.display = 'block';
+        if (playerArea) playerArea.style.display = 'block';
         generateNewCard(); // 子機でのみカードを生成・描画
     }
     // ★★★ 画面分離ロジック終わり ★★★
@@ -595,6 +595,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
