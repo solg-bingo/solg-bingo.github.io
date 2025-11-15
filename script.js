@@ -120,9 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ★★★ ボタンに関数を安全に紐づけ直す（エラー対策） ★★★
-    const drawNextButton = document.getElementById('draw-next-button');
+　　const drawNextButton = document.getElementById('draw-next-button');
     const triggerButton = document.getElementById('quiz-trigger-button');
-    const endJudgeButton = document.querySelector('#quiz-control-section button'); // 回答受付終了ボタン
+    const endJudgeButton = document.querySelector('#quiz-control-section button'); 
+    const applyBonusButton = document.querySelector('#bonus-section button'); 
+    const setIdButton = document.getElementById('set-id-button'); 
 
     if (drawNextButton) {
         drawNextButton.addEventListener('click', drawNext);
@@ -132,6 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (endJudgeButton) {
         endJudgeButton.addEventListener('click', endQuizReceptionAndJudge);
+    }
+    if (applyBonusButton) {
+        applyBonusButton.addEventListener('click', applyBonusDraw);
+    }
+    if (setIdButton) {
+        setIdButton.addEventListener('click', setUserId);
     }
     // ★★★ 紐づけ処理終わり ★★★
 });
@@ -584,6 +592,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
