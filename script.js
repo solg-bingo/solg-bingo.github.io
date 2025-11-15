@@ -16,16 +16,9 @@ const targetPrefectures = [
 ]; 
 
 const quizList = [
-    { id: 1, question: "1じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
-    { id: 2, question: "2じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
-    { id: 3, question: "3じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" },
-    { id: 4, question: "4じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
-    { id: 5, question: "5じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
-    { id: 6, question: "6じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" },
-    { id: 7, question: "7じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
-    { id: 8, question: "8じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
-    { id: 9, question: "9じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" },
-
+    { id: 1, question: "じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
+    { id: 2, question: "じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
+    { id: 3, question: "じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" }
 ];
 
 let currentDrawnPrefectures = [];
@@ -65,9 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ★★★ 画面分離ロジックを確実に動作させる ★★★
     if (role === 'master') {
         currentRole = 'master';
-// 親機の場合、masterArea を表示し、playerArea を非表示
-        if (masterArea) masterArea.style.display = 'block'; 
         if (playerArea) playerArea.style.display = 'none';
+        if (masterArea) masterArea.style.display = 'block'; 
 
 // ★★★ 修正箇所：親機起動時のFirebase状態の初期化 ★★★
         gameRef.set({
@@ -85,9 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
     } else {
         currentRole = 'player';
-// 子機の場合、masterArea を非表示にし、playerArea を表示
         if (masterArea) masterArea.style.display = 'none';
-        if (playerArea) playerArea.style.display = 'block';
+        if (playerArea) playerArea.style.display = 'block'; 
         generateNewCard(); // 子機でのみカードを生成・描画
     }
     // ★★★ 画面分離ロジック終わり ★★★
@@ -123,11 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ★★★ ボタンに関数を安全に紐づけ直す（エラー対策） ★★★
-　　const drawNextButton = document.getElementById('draw-next-button');
+    const drawNextButton = document.getElementById('draw-next-button');
     const triggerButton = document.getElementById('quiz-trigger-button');
-    const endJudgeButton = document.querySelector('#quiz-control-section button'); 
-    const applyBonusButton = document.querySelector('#bonus-section button'); 
-    const setIdButton = document.getElementById('set-id-button'); 
+    const endJudgeButton = document.querySelector('#quiz-control-section button'); // 回答受付終了ボタン
 
     if (drawNextButton) {
         drawNextButton.addEventListener('click', drawNext);
@@ -137,12 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (endJudgeButton) {
         endJudgeButton.addEventListener('click', endQuizReceptionAndJudge);
-    }
-    if (applyBonusButton) {
-        applyBonusButton.addEventListener('click', applyBonusDraw);
-    }
-    if (setIdButton) {
-        setIdButton.addEventListener('click', setUserId);
     }
     // ★★★ 紐づけ処理終わり ★★★
 });
@@ -595,14 +578,6 @@ function resetGame() {
     });
 
 }
-
-
-
-
-
-
-
-
 
 
 
