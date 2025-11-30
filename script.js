@@ -290,7 +290,7 @@ function checkBingoAuto() {
     if(bingoStatusElement) bingoStatusElement.textContent = `リーチ：${reachCount} / ビンゴ：${bingoCount}`;
 
     if (bingoCount > 0 && !table.dataset.bingoAnnounced) {
-        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！景品と交換！`);
+        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！`);
         table.dataset.bingoAnnounced = true;
     }
 }
@@ -502,7 +502,7 @@ function endQuizReceptionAndJudge() {
             const winnerIndex = Math.floor(Math.random() * correctAnswers.length);
             const winner = correctAnswers[winnerIndex];
             
-            resultElement.textContent = `🎉 正解者の中から抽選！🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！`;
+            resultElement.textContent = `🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！🎉`;
             resultElement.style.color = 'green';
             
             document.getElementById('quiz-control-section').style.display = 'none'; 
@@ -584,6 +584,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
