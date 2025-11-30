@@ -320,7 +320,7 @@ function resetQuizState() {
         playerQuizSection.querySelectorAll('button').forEach(btn => {
             btn.classList.remove('answered');
             // インラインスタイルで背景色を明示的にクリア (CSS優先度対策)
-            btn.style.backgroundColor = '';
+            btn.style.backgroundColor = '#fff';
             btn.disabled = false;
         });
         document.getElementById('player-quiz-message').textContent = "";
@@ -586,6 +586,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
