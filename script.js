@@ -290,9 +290,30 @@ function checkBingoAuto() {
     if(bingoStatusElement) bingoStatusElement.textContent = `リーチ：${reachCount} / ビンゴ：${bingoCount}`;
 
     if (bingoCount > 0 && !table.dataset.bingoAnnounced) {
-        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！景品と交換！`);
+        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！`);
         table.dataset.bingoAnnounced = true;
+    // ★★★ 修正・追加: ビンゴ達成記録の送信 ★★★
+        if (currentRole === 'player') {
+            recordBingoTime(userId, bingoCount);
+        }
+        // ★★★ 修正・追加 終わり ★★★
+      
     }
+}
+
+function recordBingoTime(winnerId, count) {
+    // ユーザーIDと現在のタイムスタンプをFirestoreに書き込む
+    db.collection('bingoRecords').add({
+        userId: winnerId,
+        bingoCount: count, // 何ラインでビンゴしたか
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() // サーバーの正確な達成時間
+    })
+    .then(() => {
+        console.log(`Bingo recorded for user: ${winnerId}`);
+    })
+    .catch(error => {
+        console.error("Failed to record bingo time:", error);
+    });
 }
 
 // =================================================================
@@ -588,6 +609,53 @@ function resetGame() {
 }
 
 
+// script.js / displayFinalRanking 関数の修正
+
+function displayFinalRanking() {
+    const scoreList = document.getElementById('score-list');
+    const rankingArea = document.getElementById('ranking-area');
+
+    // 1. ビンゴ達成記録のデータを取得
+    db.collection('bingoRecords').orderBy('timestamp', 'asc').get().then(snapshot => {
+        let ranking = [];
+        let achievedUsers = new Set(); // 既にビンゴしたユーザーを記録
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            
+            // 既にビンゴしたユーザーの最も早い記録（timestampがascなので最初の記録）のみを採用
+            if (!achievedUsers.has(data.userId)) {
+                ranking.push({
+                    userId: data.userId,
+                    time: data.timestamp.toDate() // FirestoreのタイムスタンプをJavaScriptの日付オブジェクトに変換
+                });
+                achievedUsers.add(data.userId);
+            }
+        });
+
+        // 2. クイズスコアと統合（表示はランキングのみに簡素化）
+        scoreList.innerHTML = '';
+        ranking.forEach((record, index) => {
+            const rank = index + 1;
+            const listItem = document.createElement('li');
+            
+            const timeString = record.time.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            
+            listItem.style.margin = '10px 0';
+            listItem.style.fontWeight = (rank <= 3) ? 'bold' : 'normal';
+            
+            listItem.textContent = `[ ${rank}位] ID: ${record.userId} - 達成時刻: ${timeString}`;
+            
+            scoreList.appendChild(listItem);
+        });
+
+        // 3. ランキングエリアを表示
+        rankingArea.style.display = 'block';
+
+    }).catch(error => {
+        console.error("Failed to fetch bingo ranking:", error);
+    });
+}
 
 
 
