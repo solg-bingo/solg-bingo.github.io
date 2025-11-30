@@ -290,30 +290,9 @@ function checkBingoAuto() {
     if(bingoStatusElement) bingoStatusElement.textContent = `リーチ：${reachCount} / ビンゴ：${bingoCount}`;
 
     if (bingoCount > 0 && !table.dataset.bingoAnnounced) {
-        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！`);
+        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！景品と交換！`);
         table.dataset.bingoAnnounced = true;
-    // ★★★ 修正・追加: ビンゴ達成記録の送信 ★★★
-        if (currentRole === 'player') {
-            recordBingoTime(userId, bingoCount);
-        }
-        // ★★★ 修正・追加 終わり ★★★
-      
     }
-}
-
-function recordBingoTime(winnerId, count) {
-    // ユーザーIDと現在のタイムスタンプをFirestoreに書き込む
-    db.collection('bingoRecords').add({
-        userId: winnerId,
-        bingoCount: count, // 何ラインでビンゴしたか
-        timestamp: firebase.firestore.FieldValue.serverTimestamp() // サーバーの正確な達成時間
-    })
-    .then(() => {
-        console.log(`Bingo recorded for user: ${winnerId}`);
-    })
-    .catch(error => {
-        console.error("Failed to record bingo time:", error);
-    });
 }
 
 // =================================================================
@@ -340,8 +319,6 @@ function resetQuizState() {
         // 子機のボタンのスタイルとクリックブロッカーをリセット
         playerQuizSection.querySelectorAll('button').forEach(btn => {
             btn.classList.remove('answered');
-            // インラインスタイルで背景色を明示的にクリア (CSS優先度対策)
-            btn.style.backgroundColor = '#fff';
             btn.disabled = false;
         });
         document.getElementById('player-quiz-message').textContent = "";
@@ -365,11 +342,8 @@ function drawNext() {
         alert("クイズ中です。先にクイズを完了してください。"); 
         return; 
     }
-    if (availablePrefectures.length === 0) { 
-        alert("すべての自治体が出ました！最終ランキングを表示します。");
-        
-        // ランキング表示をトリガー
-        displayFinalRanking(); 
+    if (currentDrawnPrefectures.length >= targetPrefectures.length) { 
+        alert("すべての自治体が出ました。"); 
         return; 
     }
 
@@ -528,7 +502,7 @@ function endQuizReceptionAndJudge() {
             const winnerIndex = Math.floor(Math.random() * correctAnswers.length);
             const winner = correctAnswers[winnerIndex];
             
-            resultElement.textContent = `🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！🎉`;
+            resultElement.textContent = `🎉 正解者の中から抽選！🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！`;
             resultElement.style.color = 'green';
             
             document.getElementById('quiz-control-section').style.display = 'none'; 
@@ -610,57 +584,6 @@ function resetGame() {
     });
 
 }
-
-
-// script.js / displayFinalRanking 関数の修正
-
-function displayFinalRanking() {
-    const scoreList = document.getElementById('score-list');
-    const rankingArea = document.getElementById('ranking-area');
-
-    // 1. ビンゴ達成記録のデータを取得
-    db.collection('bingoRecords').orderBy('timestamp', 'asc').get().then(snapshot => {
-        let ranking = [];
-        let achievedUsers = new Set(); // 既にビンゴしたユーザーを記録
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            
-            // 既にビンゴしたユーザーの最も早い記録（timestampがascなので最初の記録）のみを採用
-            if (!achievedUsers.has(data.userId)) {
-                ranking.push({
-                    userId: data.userId,
-                    time: data.timestamp.toDate() // FirestoreのタイムスタンプをJavaScriptの日付オブジェクトに変換
-                });
-                achievedUsers.add(data.userId);
-            }
-        });
-
-        // 2. クイズスコアと統合（表示はランキングのみに簡素化）
-        scoreList.innerHTML = '';
-        ranking.forEach((record, index) => {
-            const rank = index + 1;
-            const listItem = document.createElement('li');
-            
-            const timeString = record.time.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
-            
-            listItem.style.margin = '10px 0';
-            listItem.style.fontWeight = (rank <= 3) ? 'bold' : 'normal';
-            
-            listItem.textContent = `[ ${rank}位] ID: ${record.userId} - 達成時刻: ${timeString}`;
-            
-            scoreList.appendChild(listItem);
-        });
-
-        // 3. ランキングエリアを表示
-        rankingArea.style.display = 'block';
-
-    }).catch(error => {
-        console.error("Failed to fetch bingo ranking:", error);
-    });
-}
-
-
 
 
 
