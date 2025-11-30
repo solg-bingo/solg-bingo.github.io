@@ -365,8 +365,11 @@ function drawNext() {
         alert("クイズ中です。先にクイズを完了してください。"); 
         return; 
     }
-    if (currentDrawnPrefectures.length >= targetPrefectures.length) { 
-        alert("すべての自治体が出ました。"); 
+    if (availablePrefectures.length === 0) { 
+        alert("すべての自治体が出ました！最終ランキングを表示します。");
+        
+        // ランキング表示をトリガー
+        displayFinalRanking(); 
         return; 
     }
 
@@ -656,6 +659,7 @@ function displayFinalRanking() {
         console.error("Failed to fetch bingo ranking:", error);
     });
 }
+
 
 
 
