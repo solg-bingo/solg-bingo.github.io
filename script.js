@@ -431,7 +431,7 @@ function triggerQuiz() {
     const choiceHTML = choices.map((text, index) => {
         // マークとテキストを結合
         const mark = marks[index] || '';
-        return `<span style="font-size: 1.5em; font-weight: bold; color: black;">${mark} ${text}</span>`;
+        return `<span style="font-size: 1.5em; font-weight: bold;">${mark} ${text}</span>`;
     }).join(' &nbsp; '); // 各選択肢をスペースで区切る
     
     const hintElement = document.getElementById('quiz-hint');
@@ -621,7 +621,6 @@ function resetGame() {
     });
 
 }
-
 
 
 
