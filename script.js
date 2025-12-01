@@ -420,6 +420,11 @@ function triggerQuiz() {
     
     currentQuiz = quizList[quizIndex]; 
 
+  // ★★★ 修正箇所: 前回の結果をクリアする処理を追加 ★★★
+    document.getElementById('quiz-result').textContent = ""; // 判定結果メッセージ
+    document.getElementById('first-answer-display').textContent = ""; // 最速回答IDなど
+    // ★★★ 修正箇所終わり ★★★
+
   // UIの更新
     document.getElementById('quiz-area').style.display = 'block';
     document.getElementById('quiz-question').textContent = currentQuiz.question;
@@ -621,6 +626,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
