@@ -16,15 +16,42 @@ const targetPrefectures = [
 ]; 
 
 const quizList = [
-    { id: 1, question: "1じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
-    { id: 2, question: "2じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
-    { id: 3, question: "3じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" },
-    { id: 4, question: "4じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
-    { id: 5, question: "5じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
-    { id: 6, question: "6じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" },
-    { id: 7, question: "7じゃんけん！次に勝つのはどれ？", answer: "ぐー", hint: "最初に親が出す手は「ちょき」です" },
-    { id: 8, question: "8じゃんけん！次に勝つのはどれ？", answer: "ちょき", hint: "最初に親が出す手は「ぱー」です" },
-    { id: 9, question: "9じゃんけん！次に勝つのはどれ？", answer: "ぱー", hint: "最初に親が出す手は「ぐー」です" }
+    { id: 1, question: "1今年の万博はどこで開催された？",
+     answer: "大阪",
+     choices: ["大阪", "東京", "愛知"]
+    },
+    { id: 2, question: "2じゃんけん！次に勝つのはどれ？",
+     answer: "ちょき", 
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 3, question: "3じゃんけん！次に勝つのはどれ？",
+     answer: "ぱー",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 4, question: "4じゃんけん！次に勝つのはどれ？",
+     answer: "ぐー",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 5, question: "5じゃんけん！次に勝つのはどれ？",
+     answer: "ちょき",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 6, question: "6じゃんけん！次に勝つのはどれ？",
+     answer: "ぱー",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 7, question: "7じゃんけん！次に勝つのはどれ？",
+     answer: "ぐー",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 8, question: "8じゃんけん！次に勝つのはどれ？",
+     answer: "ちょき",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    },
+    { id: 9, question: "9じゃんけん！次に勝つのはどれ？",
+     answer: "ぱー",
+     choices: ["ぐー", "ちょき", "ぱー"]
+    }
 ];
 
 let currentDrawnPrefectures = [];
@@ -584,6 +611,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
