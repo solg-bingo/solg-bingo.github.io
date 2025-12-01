@@ -420,15 +420,25 @@ function triggerQuiz() {
     
     currentQuiz = quizList[quizIndex]; 
 
-// ★★★ 修正箇所：前回のクイズ結果表示をクリア ★★★
-    document.getElementById('quiz-result').textContent = "";
-    document.getElementById('first-answer-display').textContent = "";
-    // ★★★ 修正ここまで ★★★
-    
-    // UIの更新
+  // UIの更新
     document.getElementById('quiz-area').style.display = 'block';
     document.getElementById('quiz-question').textContent = currentQuiz.question;
-    document.getElementById('quiz-hint').textContent = `（ヒント: ${currentQuiz.hint}）`; 
+
+  // ★★★ 修正箇所: 選択肢を動的に表示 ★★★
+    const choices = currentQuiz.choices || ["ぐー", "ちょき", "ぱー"]; // 選択肢リスト
+    const marks = ["✊", "✌️", "✋"]; // 固定マーク
+
+    const choiceHTML = choices.map((text, index) => {
+        // マークとテキストを結合
+        const mark = marks[index] || '';
+        return `<span style="font-size: 1.5em; font-weight: bold;">${mark} ${text}</span>`;
+    }).join(' &nbsp; '); // 各選択肢をスペースで区切る
+    
+    const hintElement = document.getElementById('quiz-hint');
+    if (hintElement) {
+        hintElement.innerHTML = choiceHTML;
+    }
+    // ★★★ 修正箇所終わり ★★★
     
     document.getElementById('quiz-trigger-button').disabled = true;
     document.getElementById('draw-next-button').disabled = true;
@@ -611,6 +621,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
