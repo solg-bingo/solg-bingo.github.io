@@ -559,11 +559,10 @@ function endQuizReceptionAndJudge() {
             resultElement.style.color = 'red';
           // ローカルとFirebaseの状態を完全に初期化し、抽選に進めるようにする
           // ★★★ 最終対策: 5秒間待ってからリセットを実行 ★★★
+          currentQuiz = null;// ローカル変数を先にクリア
             setTimeout(() => {
-            currentQuiz = null;
             resetQuizState();
-　　　　　　　　　document.getElementById('quiz-trigger-button').disabled = false;
-                document.getElementById('draw-next-button').disabled = false;
+
             }, 5000); // 5秒間結果を画面に固定
         }
         
@@ -631,6 +630,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
