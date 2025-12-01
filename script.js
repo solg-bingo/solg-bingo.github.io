@@ -341,6 +341,11 @@ function resetQuizState() {
     document.getElementById('quiz-control-section').style.display = 'block'; 
     document.getElementById('bonus-section').style.display = 'none'; 
 
+  // ★★★ 修正箇所: 結果表示エリアのテキストをクリア ★★★
+    document.getElementById('quiz-result').textContent = ""; // 判定結果メッセージをクリア
+    document.getElementById('first-answer-display').textContent = ""; // 回答者IDの情報をクリア
+    // ★★★ 修正箇所終わり ★★★
+
     const playerQuizSection = document.getElementById('player-quiz-answer-section');
     if(playerQuizSection) {
         // 子機のボタンのスタイルとクリックブロッカーをリセット
@@ -626,6 +631,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
