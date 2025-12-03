@@ -17,49 +17,40 @@ const targetPrefectures = [
 
 const quizList = [
     { id: 1, question: "1今年の万博はどこで開催された？",
-     answer: "ぐー",
-     choices: ["大阪", "東京", "愛知"],
-     hint: ""
+     answer: "大阪",
+     choices: ["大阪", "東京", "愛知"]
     },
-    { id: 2, question: "男子棒高跳の優勝者デュプランティス選手は世界記録を何度更新しているでしょうか？",
+    { id: 2, question: "2じゃんけん！次に勝つのはどれ？",
      answer: "ちょき", 
-     choices: ["12回", "14回", "16回"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 3, question: "3じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 4, question: "4じゃんけん！次に勝つのはどれ？",
      answer: "ぐー",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 5, question: "5じゃんけん！次に勝つのはどれ？",
      answer: "ちょき",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 6, question: "6じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 7, question: "7じゃんけん！次に勝つのはどれ？",
      answer: "ぐー",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 8, question: "8じゃんけん！次に勝つのはどれ？",
      answer: "ちょき",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     },
     { id: 9, question: "9じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
-     choices: ["ぐー", "ちょき", "ぱー"],
-     hint: ""
+     choices: ["ぐー", "ちょき", "ぱー"]
     }
 ];
 
@@ -516,12 +507,10 @@ function submitQuizAnswer(mark, event) {
 
 // 親機: 回答受付を終了し、判定する関数
 function endQuizReceptionAndJudge() {
-  // 処理開始時に currentQuiz を隔離する (クイズデータが失われるのを防ぐ)
-　const quizDataSnapshot = currentQuiz;
-// 処理開始時に currentQuiz が設定されていない場合は中断
-    if (!quizDataSnapshot) { 
+  if (!currentQuiz) { 
         console.warn("判定エラー: 現在出題中のクイズがありません。");
         document.getElementById('quiz-result').textContent = "⚠️ 判定を実行できませんでした。クイズが出題されていません。";
+        // 判定ボタンが押された場合に備え、状態をリセットして次の抽選を可能にする
         resetQuizState();
         return;
     }
@@ -541,20 +530,10 @@ function endQuizReceptionAndJudge() {
                 timestamp: data.timestamp
             });
         });
-
-      // ★★★ 修正箇所: 隔離されたデータを使用 ★★★
-        const correctMark = quizDataSnapshot.answer;
-        // ★★★ 修正箇所終わり ★★★
-      
+        
         // --- 判定ロジックの開始 ---
         const resultElement = document.getElementById('quiz-result');
         const correctAnswers = []; 
-
-        if (!currentQuiz) { 
-             resultElement.textContent = "処理中にクイズデータが失われました。";
-             resultElement.style.color = 'red';
-             return;
-        }
         const correctMark = currentQuiz.answer;
 
         allAnswers.forEach(answer => {
@@ -583,8 +562,7 @@ function endQuizReceptionAndJudge() {
           currentQuiz = null;// ローカル変数を先にクリア
             setTimeout(() => {
             resetQuizState();
-          document.getElementById('quiz-trigger-button').disabled = false;
-          document.getElementById('draw-next-button').disabled = false;
+
             }, 5000); // 5秒間結果を画面に固定
         }
         
@@ -652,38 +630,6 @@ function resetGame() {
     });
 
 }
-
-// =================================================================
-// 9. デバッグ・緊急対応用機能 (新規)
-// =================================================================
-
-function debugForceDraw(municipalityName) {
-    if (currentRole !== 'master') {
-        alert("この機能は親機（マスター）でのみ実行可能です。");
-        return;
-    }
-    if (!confirm(`警告: ${municipalityName} を強制的に抽選済みリストに追加しますか？`)) {
-        return;
-    }
-
-    // Firebaseの抽選済みリストに自治体名を直接追加
-    gameRef.set({
-        drawnPrefectures: firebase.firestore.FieldValue.arrayUnion(municipalityName),
-        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true })
-    .then(() => {
-        console.log(`Debug: ${municipalityName} forced into drawn list.`);
-        alert(`${municipalityName} を抽選済みリストに追加しました。子機でタップしてマークできます。`);
-    })
-    .catch(error => {
-        console.error("Debug Draw Failed:", error);
-    });
-}
-
-
-
-
-
 
 
 
