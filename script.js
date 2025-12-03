@@ -18,39 +18,48 @@ const targetPrefectures = [
 const quizList = [
     { id: 1, question: "1今年の万博はどこで開催された？",
      answer: "大阪",
-     choices: ["大阪", "東京", "愛知"]
+     choices: ["大阪", "東京", "愛知"],
+     hint: ""
     },
     { id: 2, question: "男子棒高跳の優勝者デュプランティス選手は世界記録を何度更新しているでしょうか？",
      answer: "ちょき", 
-     choices: ["12回", "14回", "16回"]
+     choices: ["12回", "14回", "16回"],
+     hint: ""
     },
     { id: 3, question: "3じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     },
     { id: 4, question: "4じゃんけん！次に勝つのはどれ？",
      answer: "ぐー",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     },
     { id: 5, question: "5じゃんけん！次に勝つのはどれ？",
      answer: "ちょき",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     },
     { id: 6, question: "6じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     },
     { id: 7, question: "7じゃんけん！次に勝つのはどれ？",
      answer: "ぐー",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     },
     { id: 8, question: "8じゃんけん！次に勝つのはどれ？",
      answer: "ちょき",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     },
     { id: 9, question: "9じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["ぐー", "ちょき", "ぱー"],
+     hint: ""
     }
 ];
 
@@ -630,6 +639,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
