@@ -20,9 +20,9 @@ const quizList = [
      answer: "大阪",
      choices: ["大阪", "東京", "愛知"]
     },
-    { id: 2, question: "2じゃんけん！次に勝つのはどれ？",
+    { id: 2, question: "男子棒高跳の優勝者デュプランティス選手は世界記録を何度更新しているでしょうか？",
      answer: "ちょき", 
-     choices: ["ぐー", "ちょき", "ぱー"]
+     choices: ["12回", "14回", "16回"]
     },
     { id: 3, question: "3じゃんけん！次に勝つのはどれ？",
      answer: "ぱー",
@@ -630,6 +630,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
