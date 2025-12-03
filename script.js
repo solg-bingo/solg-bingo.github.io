@@ -507,10 +507,12 @@ function submitQuizAnswer(mark, event) {
 
 // 親機: 回答受付を終了し、判定する関数
 function endQuizReceptionAndJudge() {
-  if (!currentQuiz) { 
-        console.warn("判定エラー: 現在出題中のクイズがありません。");
+// 処理開始時に currentQuiz を隔離する (クイズデータが失われるのを防ぐ)
+    const quizDataSnapshot = currentQuiz; 
+
+    // 処理開始時に currentQuiz が設定されていない場合は中断 (隔離されたデータで再チェック)
+    if (!quizDataSnapshot) { 
         document.getElementById('quiz-result').textContent = "⚠️ 判定を実行できませんでした。クイズが出題されていません。";
-        // 判定ボタンが押された場合に備え、状態をリセットして次の抽選を可能にする
         resetQuizState();
         return;
     }
@@ -534,7 +536,7 @@ function endQuizReceptionAndJudge() {
         // --- 判定ロジックの開始 ---
         const resultElement = document.getElementById('quiz-result');
         const correctAnswers = []; 
-        const correctMark = currentQuiz.answer;
+        const correctMark = quizDataSnapshot.answer; // 隔離されたデータを使用
 
         allAnswers.forEach(answer => {
             if (answer.answer === correctMark) { 
@@ -559,10 +561,12 @@ function endQuizReceptionAndJudge() {
             resultElement.style.color = 'red';
           // ローカルとFirebaseの状態を完全に初期化し、抽選に進めるようにする
           // ★★★ 最終対策: 5秒間待ってからリセットを実行 ★★★
-          currentQuiz = null;// ローカル変数を先にクリア
+            currentQuiz = null; // ローカル変数を先にクリア
+            // UI要素を固定し、5秒後にリセット関数を呼び出す
             setTimeout(() => {
-            resetQuizState();
-
+                resetQuizState();
+                document.getElementById('quiz-trigger-button').disabled = false;
+                document.getElementById('draw-next-button').disabled = false;
             }, 5000); // 5秒間結果を画面に固定
         }
         
@@ -630,6 +634,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
