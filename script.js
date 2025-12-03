@@ -543,6 +543,12 @@ function endQuizReceptionAndJudge() {
         // --- 判定ロジックの開始 ---
         const resultElement = document.getElementById('quiz-result');
         const correctAnswers = []; 
+
+        if (!currentQuiz) { 
+             resultElement.textContent = "処理中にクイズデータが失われました。";
+             resultElement.style.color = 'red';
+             return;
+        }
         const correctMark = currentQuiz.answer;
 
         allAnswers.forEach(answer => {
@@ -571,7 +577,8 @@ function endQuizReceptionAndJudge() {
           currentQuiz = null;// ローカル変数を先にクリア
             setTimeout(() => {
             resetQuizState();
-
+          document.getElementById('quiz-trigger-button').disabled = false;
+          document.getElementById('draw-next-button').disabled = false;
             }, 5000); // 5秒間結果を画面に固定
         }
         
@@ -666,6 +673,7 @@ function debugForceDraw(municipalityName) {
         console.error("Debug Draw Failed:", error);
     });
 }
+
 
 
 
