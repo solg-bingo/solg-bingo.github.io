@@ -516,10 +516,12 @@ function submitQuizAnswer(mark, event) {
 
 // 親機: 回答受付を終了し、判定する関数
 function endQuizReceptionAndJudge() {
-  if (!currentQuiz) { 
+  // 処理開始時に currentQuiz を隔離する (クイズデータが失われるのを防ぐ)
+　const quizDataSnapshot = currentQuiz;
+// 処理開始時に currentQuiz が設定されていない場合は中断
+    if (!quizDataSnapshot) { 
         console.warn("判定エラー: 現在出題中のクイズがありません。");
         document.getElementById('quiz-result').textContent = "⚠️ 判定を実行できませんでした。クイズが出題されていません。";
-        // 判定ボタンが押された場合に備え、状態をリセットして次の抽選を可能にする
         resetQuizState();
         return;
     }
@@ -539,7 +541,11 @@ function endQuizReceptionAndJudge() {
                 timestamp: data.timestamp
             });
         });
-        
+
+      // ★★★ 修正箇所: 隔離されたデータを使用 ★★★
+        const correctMark = quizDataSnapshot.answer;
+        // ★★★ 修正箇所終わり ★★★
+      
         // --- 判定ロジックの開始 ---
         const resultElement = document.getElementById('quiz-result');
         const correctAnswers = []; 
@@ -673,6 +679,7 @@ function debugForceDraw(municipalityName) {
         console.error("Debug Draw Failed:", error);
     });
 }
+
 
 
 
