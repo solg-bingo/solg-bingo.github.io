@@ -26,7 +26,7 @@ const quizList = [
     },
     { id: 3, question: "大阪・関西万博効果により、特別手当の支給が報じられた会社の中で、1人あたりの支給額が最も高いのはどこでしょうか？",
      answer: "ちょき",
-     choices: ["JR西日本", "大阪メトロ", "近鉄"]
+     choices: ["JR西日本", "大阪メトロ", "近畿日本鉄道（近鉄）"]
     },
     { id: 4, question: "歴代横綱の在位場所数ランキングで、3位は誰でしょうか？",
      answer: "ちょき",
@@ -404,7 +404,7 @@ function triggerQuiz() {
         gameRef.set({
             isQuizActive: false,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        }, { merge: true })
         .then(() => {
             // UIとローカル変数をリセット
             resetQuizState(); 
@@ -434,6 +434,10 @@ function triggerQuiz() {
     document.getElementById('quiz-area').style.display = 'block';
     document.getElementById('quiz-question').textContent = currentQuiz.question;
 
+  // ★★★ 修正箇所: 選択肢を動的に表示 ★★★
+    const choices = currentQuiz.choices || ["ぐー", "ちょき", "ぱー"]; // 選択肢リスト
+    const marks = ["✊", "✌️", "✋"]; // 固定マーク
+
     const choiceHTML = choices.map((text, index) => {
         // マークとテキストを結合
         const mark = marks[index] || '';
@@ -456,23 +460,6 @@ function triggerQuiz() {
         fastestAnswer: [], 
         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
-
-.then(() => {
-        // 書き込みが完了し、データがFirebaseに到達した後、ローカルのUIを更新する
-        const hintElement = document.getElementById('quiz-hint');
-        if (hintElement) {
-            const choices = currentQuiz.choices || ["ぐー", "ちょき", "ぱー"]; 
-            const marks = ["✊", "✌️", "✋"]; 
-            const choiceHTML = choices.map((text, index) => {
-                const mark = marks[index] || '';
-                return `<span style="font-size: 1.5em; font-weight: bold; color: black;">${mark} ${text}</span>`;
-            }).join(' &nbsp; ');
-            hintElement.innerHTML = choiceHTML;
-        }
-    });
-    .catch(error => {
-        console.error("Quiz submission failed:", error);
-    });
 
     quizIndex++;
 }
@@ -647,7 +634,6 @@ function resetGame() {
     });
 
 }
-
 
 
 
