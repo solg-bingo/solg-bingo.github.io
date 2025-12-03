@@ -17,7 +17,7 @@ const targetPrefectures = [
 
 const quizList = [
     { id: 1, question: "1今年の万博はどこで開催された？",
-     answer: "大阪",
+     answer: "ぐー",
      choices: ["大阪", "東京", "愛知"],
      hint: ""
     },
@@ -639,6 +639,7 @@ function resetGame() {
     });
 
 }
+
 
 
 
