@@ -640,6 +640,33 @@ function resetGame() {
 
 }
 
+// =================================================================
+// 9. デバッグ・緊急対応用機能 (新規)
+// =================================================================
+
+function debugForceDraw(municipalityName) {
+    if (currentRole !== 'master') {
+        alert("この機能は親機（マスター）でのみ実行可能です。");
+        return;
+    }
+    if (!confirm(`警告: ${municipalityName} を強制的に抽選済みリストに追加しますか？`)) {
+        return;
+    }
+
+    // Firebaseの抽選済みリストに自治体名を直接追加
+    gameRef.set({
+        drawnPrefectures: firebase.firestore.FieldValue.arrayUnion(municipalityName),
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+    .then(() => {
+        console.log(`Debug: ${municipalityName} forced into drawn list.`);
+        alert(`${municipalityName} を抽選済みリストに追加しました。子機でタップしてマークできます。`);
+    })
+    .catch(error => {
+        console.error("Debug Draw Failed:", error);
+    });
+}
+
 
 
 
