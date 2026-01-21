@@ -431,10 +431,16 @@ function drawNext() {
         alert("クイズ中です。先にクイズを完了してください。"); 
         return; 
     }
-    if (currentDrawnPrefectures.length >= targetPrefectures.length) { 
+   const availablePrefectures = targetPrefectures.filter(p => !currentDrawnPrefectures.includes(p));
+  
+    if (currentDrawnPrefectures.length === 0) { 
         alert("すべての自治体が出ました。"); 
         return; 
     }
+
+  // ★★★ ルーレット開始 ★★★
+    startRoulette(availablePrefectures);
+}
 
     const availablePrefectures = targetPrefectures.filter(p => !currentDrawnPrefectures.includes(p));
     const randomIndex = Math.floor(Math.random() * availablePrefectures.length);
@@ -690,6 +696,58 @@ function resetGame() {
         console.error("ゲームリセット失敗:", error);
     });
 
+}
+
+// script.js / 新規関数を追加
+
+const ROULETTE_DURATION = 3000; // 3000ms = 3秒
+
+function startRoulette(availableList) {
+    const drawElement = document.getElementById('current-draw');
+    const drawNextButton = document.getElementById('draw-next-button');
+    const triggerButton = document.getElementById('quiz-trigger-button');
+
+    // 1. ボタンを無効化 (ルーレット中は抽選やクイズができないように)
+    drawNextButton.disabled = true;
+    if (triggerButton) triggerButton.disabled = true;
+
+    // 2. 抽選結果を先に決定
+    const randomIndex = Math.floor(Math.random() * availableList.length);
+    const finalResult = availableList[randomIndex];
+
+    // 3. ルーレットのアニメーションを開始 (50msごとに表示を更新)
+    const intervalId = setInterval(() => {
+        // リストからランダムに自治体を選び、高速で表示
+        const randomItem = availableList[Math.floor(Math.random() * availableList.length)];
+        drawElement.textContent = randomItem;
+    }, 50);
+
+    // 4. 3秒後にアニメーションを停止し、結果を確定
+    setTimeout(() => {
+        clearInterval(intervalId); // アニメーションを停止
+
+        // 最終結果を画面に表示
+        drawElement.textContent = finalResult;
+
+        // Firebaseへの書き込み (ルーレット結果を共有)
+        gameRef.set({
+            drawnPrefectures: firebase.firestore.FieldValue.arrayUnion(finalResult),
+            isQuizActive: false, 
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }) 
+        .then(() => {
+            // 抽選完了後、ボタンを再度有効化
+            drawNextButton.disabled = false;
+            if (triggerButton) triggerButton.disabled = false;
+        })
+        .catch((error) => {
+            console.error("Firebase update failed:", error);
+            // エラー時もボタンを有効に戻す
+            drawNextButton.disabled = false;
+            if (triggerButton) triggerButton.disabled = false;
+        });
+
+    }, ROULETTE_DURATION);
 }
 
 
