@@ -77,6 +77,10 @@ images/      … サンプルのマスコット画像(SVG)
 
 「🔄 ゲームをリセット」を実行すると、`bingo/gameState`・`quizAnswers`・`bingoWinners`・`quizStats` がすべて消去されます(`config/gameConfig`は消えません)。
 
+## GitHubへのpush(認証)
+
+`git push`時のGitHubログインは、鮱名のAppleでログインする。
+
 ## 注意点
 
 - FirebaseのAPIキーは`index.html`/`setup.html`内に平文で埋め込まれていますが、これはクライアント用の公開キーであり一般的な仕様です。実際のアクセス制御はFirebase側のFirestoreセキュリティルールで行う必要がありますが、本リポジトリにはルール設定は含まれていません。身内利用が前提の簡易的な構成です。
