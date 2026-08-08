@@ -5,8 +5,9 @@
 // 参加者の一意のIDを生成・保持 (ユーザー入力またはランダム仮ID)
 let userId = localStorage.getItem('bingoUserId') || 'user_' + Date.now() + Math.floor(Math.random() * 10000);
 
-// ★★★ ここが自治体リストです (9個以上必須) ★★★
-const targetPrefectures = [
+// ★★★ ここが自治体リストのデフォルト値です (9個以上必須) ★★★
+// setup.htmlでFirestoreに設定が保存されている場合は、起動時にそちらで上書きされます
+let targetPrefectures = [
   "札幌市", "常総市", "土浦市", "石岡市", "つくば市",
   "栃木市", "佐野市", "高崎市", "さいたま市", "三郷市",
   "蓮田市", "鴻巣市", "狭山市", "市川市", "柏市",
@@ -18,9 +19,11 @@ const targetPrefectures = [
 ];
 
 
-const quizList = [
-    { 
-        id: 1, 
+// ★★★ ここがクイズリストのデフォルト値です ★★★
+// setup.htmlでFirestoreに設定が保存されている場合は、起動時にそちらで上書きされます
+let quizList = [
+    {
+        id: 1,
         question: "クマの出没が全国的に深刻なニュースとなっている。秋田県では、ツキノワグマ情報マップシステムを公開しているが、名称は次のうちどれ？", 
         answer: "ぱー", 
         choices: ["クマソク", "クマナビ", "クマダス"] 
@@ -111,10 +114,21 @@ const quizList = [
     }
 ];
 
+// ★★★ サンプル：自治体名 → ゆるキャラ画像のマッピング ★★★
+// ここに用意した画像を割り当てると、ビンゴのマスや抽選結果にキャラクターが表示されます（未設定の自治体は今まで通り文字のみ）
+const prefectureImages = {
+    "札幌市": "images/sample_sapporo.svg",
+    "横浜市": "images/sample_yokohama.svg",
+    "鎌倉市": "images/sample_kamakura.svg",
+    "つくば市": "images/sample_tsukuba.svg"
+};
+
 let currentDrawnPrefectures = [];
 let currentQuiz = null;
 let quizIndex = 0;
-let currentRole = 'player'; 
+let currentRole = 'player';
+let autoResultsShown = false; // 参加者全員のビンゴ達成による自動発表が済んだかどうか（親機のみ使用）
+let lastKnownDrawnCount = null; // ゲームリセット検知用（子機のみ使用）
 
 // =================================================================
 // 2. ユーザーID設定機能
@@ -139,8 +153,32 @@ function setUserId() {
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Firestoreに幹事が保存した自治体リスト・クイズ設定があれば読み込んでから初期化する
+    loadGameConfig().then(initializeApp);
+});
+
+// setup.htmlで保存された設定(config/gameConfig)を読み込み、あればデフォルト値を上書きする
+function loadGameConfig() {
+    return db.collection('config').doc('gameConfig').get()
+        .then(doc => {
+            if (!doc.exists) return;
+            const data = doc.data();
+            if (Array.isArray(data.targetPrefectures) && data.targetPrefectures.length >= 9) {
+                targetPrefectures = data.targetPrefectures;
+            }
+            if (Array.isArray(data.quizList) && data.quizList.length > 0) {
+                quizList = data.quizList;
+            }
+        })
+        .catch(error => {
+            console.error("ゲーム設定の読み込みに失敗しました。デフォルト設定を使用します:", error);
+        });
+}
+
+function initializeApp() {
     const urlParams = new URLSearchParams(window.location.search);
     const role = urlParams.get('role');
+    const isDebugMode = urlParams.get('debug') === '1';
 
     const masterArea = document.getElementById('master-only');
     const playerArea = document.getElementById('player-only');
@@ -164,11 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Firebase initialization failed:", error);
         });
         // ★★★ 修正ここまで ★★★
-        
+
     } else {
         currentRole = 'player';
         if (masterArea) masterArea.style.display = 'none';
-        if (playerArea) playerArea.style.display = 'block'; 
+        if (playerArea) playerArea.style.display = 'block';
         generateNewCard(); // 子機でのみカードを生成・描画
     }
     // ★★★ 画面分離ロジック終わり ★★★
@@ -217,8 +255,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (endJudgeButton) {
         endJudgeButton.addEventListener('click', endQuizReceptionAndJudge);
     }
+
+    const showResultsButton = document.getElementById('show-results-button');
+    const resetGameButton = document.getElementById('reset-game-button');
+    if (showResultsButton) {
+        showResultsButton.addEventListener('click', showFinalResults);
+    }
+    if (resetGameButton) {
+        resetGameButton.addEventListener('click', resetGame);
+    }
     // ★★★ 紐づけ処理終わり ★★★
-});
+
+    // 本番URL(&debug=1なし)では開発者向けの「ゲームをリセット」「最終結果を発表」ボタンを隠す
+    if (resetGameButton) {
+        resetGameButton.style.display = isDebugMode ? 'inline-block' : 'none';
+    }
+    if (showResultsButton) {
+        showResultsButton.style.display = isDebugMode ? 'inline-block' : 'none';
+    }
+}
 
 // =================================================================
 // 4. 共通機能: Firebaseリアルタイム監視と履歴更新
@@ -239,17 +294,52 @@ gameRef.onSnapshot((doc) => {
         }
         
         if (currentRole === 'player') {
+            // 抽選履歴が「あり」から「なし」に変わったら、ゲームがリセットされたとみなし新しいカードを作る
+            if (lastKnownDrawnCount !== null && lastKnownDrawnCount > 0 && drawnFromFirebase.length === 0) {
+                resetSavedCard();
+                generateNewCard();
+            }
+            lastKnownDrawnCount = drawnFromFirebase.length;
+
             handlePlayerQuizUI(data);
-            markCardAutomatically(drawnFromFirebase); 
+            markCardAutomatically(drawnFromFirebase);
+        } else if (currentRole === 'master') {
+            checkAllPrefecturesDrawn(drawnFromFirebase);
         }
     }
 });
 
+// 親機: 自治体がすべて出たら自動で最終結果を表示する
+function checkAllPrefecturesDrawn(drawn) {
+    if (autoResultsShown) return;
+    if (targetPrefectures.length > 0 && drawn.length >= targetPrefectures.length) {
+        autoResultsShown = true;
+        showFinalResults();
+    }
+}
+
 function updateHistoryDisplay(drawn) {
     const historyDiv = document.getElementById('history-list');
     if(historyDiv) historyDiv.textContent = drawn.join(' / ') + (drawn.length > 0 ? ' / ' : '');
+    showCurrentDraw(drawn[drawn.length - 1] || '---');
+}
+
+// #current-drawにテキスト（と、サンプル画像があればマスコット画像）を表示する
+function showCurrentDraw(name) {
     const currentDrawElement = document.getElementById('current-draw');
-    if(currentDrawElement) currentDrawElement.textContent = drawn[drawn.length - 1] || '---';
+    if (!currentDrawElement) return;
+    currentDrawElement.innerHTML = '';
+
+    const imageUrl = prefectureImages[name];
+    if (imageUrl) {
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = name;
+        img.classList.add('draw-mascot');
+        currentDrawElement.appendChild(img);
+        currentDrawElement.appendChild(document.createElement('br'));
+    }
+    currentDrawElement.appendChild(document.createTextNode(name));
 }
 
 function handlePlayerQuizUI(data) {
@@ -261,11 +351,14 @@ function handlePlayerQuizUI(data) {
     // ★★★ 修正: クイズがアクティブな場合のみ表示処理を行う ★★★
     if (data.isQuizActive === true) {
         // --- クイズ開始時 ---
-        quizSection.style.display = 'block'; 
+        quizSection.style.display = 'block';
         message.textContent = "クイズが出題されました！回答してください。";
-        
-        // ボタンを有効化し、ブロッカーを隠す
-        buttons.forEach(btn => btn.disabled = false); 
+
+        // ボタンを有効化し、前回の回答色をクリアしてからブロッカーを隠す
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('answered');
+        });
         if (blocker) blocker.style.display = 'none';
         
     } else {
@@ -325,10 +418,50 @@ function drawBingoCard3x3(elements) {
     container.appendChild(table);
 }
 
+// カードの割り当ては端末ごとにlocalStorageへ保存し、ニックネーム設定やページ再読み込みをまたいで保持する
 function generateNewCard() {
-    const bingoCardElements = create3x3BingoCard();
+    let bingoCardElements = loadSavedCard();
+    if (!bingoCardElements) {
+        bingoCardElements = create3x3BingoCard();
+        localStorage.setItem('bingoCard', JSON.stringify(bingoCardElements));
+    }
     drawBingoCard3x3(bingoCardElements);
-    markCardAutomatically(currentDrawnPrefectures); 
+    restoreMarkedCells();
+    markCardAutomatically(currentDrawnPrefectures);
+}
+
+function loadSavedCard() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('bingoCard'));
+        if (Array.isArray(saved) && saved.length === 9) return saved;
+    } catch (e) {
+        // 保存データが壊れている場合は無視して新しいカードを作る
+    }
+    return null;
+}
+
+function restoreMarkedCells() {
+    let marked = [];
+    try {
+        marked = JSON.parse(localStorage.getItem('bingoMarked')) || [];
+    } catch (e) {
+        marked = [];
+    }
+    document.querySelectorAll('.bingo-cell').forEach((cell, i) => {
+        if (marked[i]) cell.classList.add('marked');
+    });
+}
+
+function saveMarkedCells() {
+    const marked = Array.from(document.querySelectorAll('.bingo-cell')).map(cell => cell.classList.contains('marked'));
+    localStorage.setItem('bingoMarked', JSON.stringify(marked));
+}
+
+// ゲーム全体がリセットされたときに、保存済みのカード・マーク状態を消して新しいカードを作る
+function resetSavedCard() {
+    localStorage.removeItem('bingoCard');
+    localStorage.removeItem('bingoMarked');
+    localStorage.removeItem('bingoAlerted');
 }
 
 function markCardAutomatically(drawn) {
@@ -341,6 +474,7 @@ function manualMarkCell(cell) {
 
     if (currentDrawnPrefectures.includes(prefecture)) {
         cell.classList.add('marked');
+        saveMarkedCells();
         checkBingoAuto();
     } else {
         alert(`${prefecture}はまだ抽選されていません。`);
@@ -374,9 +508,29 @@ function checkBingoAuto() {
     if(bingoStatusElement) bingoStatusElement.textContent = `リーチ：${reachCount} / ビンゴ：${bingoCount}`;
 
     if (bingoCount > 0 && !table.dataset.bingoAnnounced) {
-        alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！`);
         table.dataset.bingoAnnounced = true;
+        recordBingoWinner(bingoCount);
+        // localStorageでも達成済みを記録し、再読み込みのたびに通知が繰り返されないようにする
+        if (localStorage.getItem('bingoAlerted') !== 'true') {
+            alert(`🎉 ビンゴ達成！合計 ${bingoCount} ラインです！`);
+            localStorage.setItem('bingoAlerted', 'true');
+        }
     }
+}
+
+// 達成順ランキング用に、初回ビンゴのみFirestoreに記録する（既に記録済みなら上書きしない）
+function recordBingoWinner(bingoCount) {
+    const winnerRef = db.collection('bingoWinners').doc(userId);
+    winnerRef.get().then(doc => {
+        if (doc.exists) return;
+        winnerRef.set({
+            userId: userId,
+            bingoCount: bingoCount,
+            achievedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }).catch(error => {
+        console.error("ビンゴ記録の書き込みに失敗しました:", error);
+    });
 }
 
 // =================================================================
@@ -427,30 +581,65 @@ function resetQuizState() {
 }
 
 function drawNext() {
-    if (currentQuiz) { 
-        alert("クイズ中です。先にクイズを完了してください。"); 
-        return; 
+    if (currentQuiz) {
+        alert("クイズ中です。先にクイズを完了してください。");
+        return;
     }
-    if (currentDrawnPrefectures.length >= targetPrefectures.length) { 
-        alert("すべての自治体が出ました。"); 
-        return; 
+    if (currentDrawnPrefectures.length >= targetPrefectures.length) {
+        alert("すべての自治体が出ました。");
+        return;
     }
 
     const availablePrefectures = targetPrefectures.filter(p => !currentDrawnPrefectures.includes(p));
     const randomIndex = Math.floor(Math.random() * availablePrefectures.length);
     const resultPrefecture = availablePrefectures[randomIndex];
 
-    gameRef.set({
-   　 drawnPrefectures: firebase.firestore.FieldValue.arrayUnion(resultPrefecture),
-    　isQuizActive: false, 
-    　lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-　　}, { merge: true }) 
-    .then(() => {
-        console.log(`Successfully drew: ${resultPrefecture}`);
-    })
-    .catch((error) => {
-        console.error("Firebase update failed:", error);
+    runRouletteAnimation(availablePrefectures, resultPrefecture, () => {
+        gameRef.set({
+            drawnPrefectures: firebase.firestore.FieldValue.arrayUnion(resultPrefecture),
+            isQuizActive: false,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true })
+        .then(() => {
+            console.log(`Successfully drew: ${resultPrefecture}`);
+        })
+        .catch((error) => {
+            console.error("Firebase update failed:", error);
+        });
     });
+}
+
+// ルーレット風の抽選演出。poolからランダムな名前を高速表示し、最後にfinalResultで止めてonCompleteを呼ぶ
+function runRouletteAnimation(pool, finalResult, onComplete) {
+    const el = document.getElementById('current-draw');
+    const drawBtn = document.getElementById('draw-next-button');
+    const quizBtn = document.getElementById('quiz-trigger-button');
+
+    if (!el) { onComplete(); return; }
+
+    if (drawBtn) drawBtn.disabled = true;
+    if (quizBtn) quizBtn.disabled = true;
+    el.classList.add('rolling');
+
+    const totalDuration = 1500; // 演出の合計時間(ms)
+    const startTime = performance.now();
+
+    function tick(now) {
+        const elapsed = now - startTime;
+        if (elapsed >= totalDuration) {
+            showCurrentDraw(finalResult);
+            el.classList.remove('rolling');
+            if (drawBtn) drawBtn.disabled = false;
+            if (quizBtn) quizBtn.disabled = false;
+            onComplete();
+            return;
+        }
+        el.textContent = pool[Math.floor(Math.random() * pool.length)];
+        // 終盤にかけて表示の切り替えを遅くして「止まる」感を出す
+        const stepMs = elapsed > totalDuration * 0.7 ? 180 : 70;
+        setTimeout(() => requestAnimationFrame(tick), stepMs);
+    }
+    requestAnimationFrame(tick);
 }
 
 function triggerQuiz() {
@@ -603,6 +792,16 @@ function endQuizReceptionAndJudge() {
         
         document.getElementById('first-answer-display').textContent = `回答総数: ${allAnswers.length}件。正解者数: ${correctAnswers.length}人。`;
 
+        // 正解者全員の累計正解数をランキング用に加算
+        correctAnswers.forEach(answer => {
+            db.collection('quizStats').doc(answer.userId).set({
+                userId: answer.userId,
+                correctCount: firebase.firestore.FieldValue.increment(1)
+            }, { merge: true }).catch(error => {
+                console.error("クイズ正解数の記録に失敗しました:", error);
+            });
+        });
+
         // 3. 抽選ロジックと結果表示
         if (correctAnswers.length > 0) {
             const winnerIndex = Math.floor(Math.random() * correctAnswers.length);
@@ -671,25 +870,117 @@ function applyBonusDraw() {
 }
 
 function resetGame() {
-    if (!confirm("警告：抽選履歴とクイズの回答履歴が消去されます。本当にリセットしますか？")) {
+    if (!confirm("警告：抽選履歴・クイズの回答履歴・ビンゴ順位・クイズ正解数ランキングがすべて消去されます。本当にリセットしますか？")) {
         return;
     }
-    
-    gameRef.set({
-        drawnPrefectures: [], 
-        isQuizActive: false,  
-        fastestAnswer: [],    
-    }, { merge: true })
+
+    Promise.all([
+        gameRef.set({
+            drawnPrefectures: [],
+            isQuizActive: false,
+            currentQuizData: null,
+            fastestAnswer: [],
+        }, { merge: true }),
+        deleteAllDocs('bingoWinners'),
+        deleteAllDocs('quizStats'),
+        deleteAllDocs('quizAnswers')
+    ])
     .then(() => {
         currentQuiz = null;
         quizIndex = 0;
-        alert("抽選履歴がクリアされました。");
-        window.location.reload(); 
+        alert("ゲームをリセットしました。");
+        window.location.reload();
     })
     .catch(error => {
         console.error("ゲームリセット失敗:", error);
+        alert("リセット中にエラーが発生しました。コンソールを確認してください。");
     });
+}
 
+function deleteAllDocs(collectionName) {
+    return db.collection(collectionName).get().then(snapshot =>
+        Promise.all(snapshot.docs.map(doc => doc.ref.delete()))
+    );
+}
+
+// =================================================================
+// 7. デバッグ用（F12コンソールから実行）
+// =================================================================
+
+// F12 → debugForceDraw('〇〇市') で指定した自治体を強制的に抽選結果に追加する
+window.debugForceDraw = function (prefectureName) {
+    if (!targetPrefectures.includes(prefectureName)) {
+        console.error(`[DEBUG] 「${prefectureName}」は自治体リストにありません。`);
+        return;
+    }
+    if (currentDrawnPrefectures.includes(prefectureName)) {
+        console.error(`[DEBUG] 「${prefectureName}」はすでに抽選済みです。`);
+        return;
+    }
+    gameRef.set({
+        drawnPrefectures: firebase.firestore.FieldValue.arrayUnion(prefectureName),
+        isQuizActive: false,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+    .then(() => {
+        console.log(`[DEBUG] 「${prefectureName}」を強制的に抽選結果に追加しました。`);
+    })
+    .catch(error => {
+        console.error("[DEBUG] 強制抽選に失敗しました:", error);
+    });
+};
+
+// F12 → ResetGame() で「🔄 ゲームをリセット」ボタンと同じ処理を実行する
+window.ResetGame = resetGame;
+
+// 親機: ビンゴ達成順位とクイズ正解数ランキングを取得して表示する
+function showFinalResults() {
+    const box = document.getElementById('final-results-box');
+    const bingoList = document.getElementById('bingo-ranking-list');
+    const quizRankingList = document.getElementById('quiz-ranking-list');
+    if (!box || !bingoList || !quizRankingList) return;
+
+    box.style.display = 'block';
+    bingoList.innerHTML = '<li>読み込み中...</li>';
+    quizRankingList.innerHTML = '<li>読み込み中...</li>';
+
+    db.collection('bingoWinners').orderBy('achievedAt', 'asc').get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                bingoList.innerHTML = '<li>まだビンゴ達成者がいません。</li>';
+                return;
+            }
+            bingoList.innerHTML = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const li = document.createElement('li');
+                li.textContent = `${data.userId}（${data.bingoCount}ライン）`;
+                bingoList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("ビンゴ順位の取得に失敗しました:", error);
+            bingoList.innerHTML = '<li>取得に失敗しました。</li>';
+        });
+
+    db.collection('quizStats').orderBy('correctCount', 'desc').get()
+        .then(snapshot => {
+            if (snapshot.empty) {
+                quizRankingList.innerHTML = '<li>まだ正解者がいません。</li>';
+                return;
+            }
+            quizRankingList.innerHTML = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const li = document.createElement('li');
+                li.textContent = `${data.userId}（${data.correctCount}問正解）`;
+                quizRankingList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("クイズ正解数ランキングの取得に失敗しました:", error);
+            quizRankingList.innerHTML = '<li>取得に失敗しました。</li>';
+        });
 }
 
 

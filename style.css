@@ -49,21 +49,34 @@ button {
     padding: 8px 12px; /* パディングを調整 */
     margin: 4px;
 }
+/* 抽選結果に表示するサンプルマスコット画像 */
+.draw-mascot {
+    width: 200px;
+    height: 200px;
+    vertical-align: middle;
+}
 /* マークされたマスのスタイル */
 .marked {
     background-color: #4CAF50; /* 緑色 */
     color: white;
 }
+/* 親機画面はプロジェクターでの表示を想定し、全体的に大きく表示する */
+#master-only {
+    font-size: 1.4em;
+}
+#master-only button {
+    padding: 14px 28px;
+}
+
 /* 履歴ボックス */
 .history-box {
     border: 1px solid #ccc;
     padding: 10px;
-    max-height: 100px;
+    max-height: 66px;
     overflow-y: scroll;
     width: 90%;
     margin: 0 auto;
     text-align: left;
-    white-space: nowrap;
 }
 /* クイズボックス */
 .quiz-box {
@@ -78,6 +91,22 @@ button {
     background-color: #f0f8ff;
     padding: 15px;
 }
+/* 最終結果（ランキング）ボックス */
+.results-box {
+    border: 2px solid #8e44ad;
+    background-color: #f8f0fc;
+    padding: 15px 15px 15px 40px;
+    margin: 15px auto 0;
+    width: 90%;
+    text-align: left;
+}
+.results-box h3 {
+    text-align: center;
+}
+.results-box li {
+    font-size: 1.1em;
+    margin: 4px 0;
+}
 #quiz-input-section button {
     margin: 0 5px;
 }
@@ -88,6 +117,66 @@ button {
     color: white !important;
     border: 3px solid #b21f2d; /* 濃い赤色の枠線 */
     transition: background-color 0.3s;
+}
+
+/* 抽選ルーレット演出中の表示 */
+#current-draw.rolling {
+    color: #007bff;
+    animation: roulette-pulse 0.15s infinite alternate;
+}
+@keyframes roulette-pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+}
+
+/* 幹事用セットアップページ（setup.html）のスタイル */
+.quiz-row {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 15px;
+    background-color: #fafafa;
+    text-align: left;
+}
+.quiz-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.quiz-row-title {
+    font-weight: bold;
+}
+.remove-quiz-button {
+    background-color: #dc3545;
+    padding: 4px 10px;
+    font-size: 0.85em;
+}
+.quiz-row label {
+    display: block;
+    font-size: 0.85em;
+    color: #555;
+    margin-top: 8px;
+}
+.quiz-row textarea,
+.quiz-row select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px;
+    font-size: 1em;
+}
+.quiz-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.quiz-choices label {
+    flex: 1 1 150px;
+}
+.quiz-choices input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px;
 }
 
 /* クリック遮断用オーバーレイのスタイル */

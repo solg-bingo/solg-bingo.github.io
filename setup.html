@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幹事用セットアップ - SonicWeb-Bingo</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+</head>
+<body>
+    <h1 style="text-align: center; background: linear-gradient(to right, #30cfd0, #330867); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">⚙️ 幹事用セットアップ</h1>
+    <p style="text-align:center;"><a href="index.html">← ビンゴ画面に戻る</a></p>
+
+    <div id="password-gate" style="max-width: 420px; margin: 30px auto; text-align: center;">
+        <p>編集用パスワードを入力してください。</p>
+        <input type="password" id="password-input" placeholder="パスワード" style="padding: 8px; width: 200px;">
+        <button id="unlock-button" style="background-color: #007bff; padding: 8px 16px;">開く</button>
+        <p id="password-message" style="color: red; font-weight: bold;"></p>
+        <p style="font-size: 0.85em; color: #666; margin-top: 20px;">
+            ※初めて使う場合は、好きなパスワードを決めて入力し「開く」を押してください。<br>
+            そのまま内容を保存すると、次回からはそのパスワードが必要になります。
+        </p>
+    </div>
+
+    <div id="setup-form-area" style="display: none; max-width: 700px; margin: 0 auto 60px; padding: 0 15px;">
+        <p id="load-message" style="text-align: center; color: green;"></p>
+
+        <h2>🏙️ 自治体リスト（ビンゴのマスに使う言葉）</h2>
+        <p style="font-size: 0.9em; color: #666;">1行に1つずつ入力してください。9個以上必要です。</p>
+        <textarea id="prefectures-textarea" rows="14" style="width: 100%; box-sizing: border-box; padding: 8px; font-size: 1em;"></textarea>
+
+        <h2 style="margin-top: 30px;">🧠 クイズ一覧</h2>
+        <p style="font-size: 0.9em; color: #666;">✊✌️✋の順に選択肢を入力し、正解を選んでください。</p>
+        <div id="quiz-editor-list"></div>
+        <button id="add-quiz-button" type="button" style="background-color: #5cb85c;">＋ クイズを追加</button>
+
+        <h2 style="margin-top: 30px;">🔑 パスワード変更（任意）</h2>
+        <p style="font-size: 0.9em; color: #666;">変更したい場合のみ入力してください。空欄なら今回入力したパスワードのまま保存されます。</p>
+        <input type="password" id="new-password-input" placeholder="新しいパスワード（任意）" style="padding: 8px; width: 220px;">
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="save-button" style="background-color: #8e44ad; font-size: 1.1em; padding: 12px 30px;">💾 この内容で保存する</button>
+            <p id="save-message" style="margin-top: 10px; font-weight: bold;"></p>
+        </div>
+    </div>
+
+    <template id="quiz-row-template">
+        <div class="quiz-row">
+            <div class="quiz-row-header">
+                <span class="quiz-row-title"></span>
+                <button type="button" class="remove-quiz-button">✕ 削除</button>
+            </div>
+            <label>質問文</label>
+            <textarea class="quiz-question" rows="2"></textarea>
+            <div class="quiz-choices">
+                <label>✊ ぐー <input type="text" class="quiz-choice" data-mark="ぐー" placeholder="選択肢（ぐー）"></label>
+                <label>✌️ ちょき <input type="text" class="quiz-choice" data-mark="ちょき" placeholder="選択肢（ちょき）"></label>
+                <label>✋ ぱー <input type="text" class="quiz-choice" data-mark="ぱー" placeholder="選択肢（ぱー）"></label>
+            </div>
+            <label>正解</label>
+            <select class="quiz-answer">
+                <option value="ぐー">✊ ぐー</option>
+                <option value="ちょき">✌️ ちょき</option>
+                <option value="ぱー">✋ ぱー</option>
+            </select>
+        </div>
+    </template>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPNVGO5Cy8jXbRfImiQc3CBE3fW5R7Ma4",
+            authDomain: "bonenkaibingo.firebaseapp.com",
+            projectId: "bonenkaibingo",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const configRef = db.collection('config').doc('gameConfig');
+    </script>
+    <script src="setup.js"></script>
+</body>
+</html>

@@ -13,8 +13,7 @@
    <h1 style="text-align: center; background: linear-gradient(to right, #30cfd0, #330867); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SonicWeb-Bingo</h1>
 
     <div id="master-only">
-        <h2 style="text-align: center;">親機コントロールパネル</h2>
-        <div id="master-area" style="text-align: center; margin: 20px auto; max-width: 600px;">
+        <div id="master-area" style="text-align: center; margin: 20px auto; max-width: 900px;">
 
 <div id="draw-machine">
     <h3 style="color: #007bff;">現在の抽選結果</h3>
@@ -48,6 +47,18 @@
                     <input type="text" id="bonus-prefecture-input" placeholder="例: 千代田区">
                     <button onclick="applyBonusDraw()" style="background-color: #007bff;">このマスを開ける</button>
                     <p id="bonus-message" style="color: red;"></p>
+                </div>
+            </div>
+
+            <div id="final-results-section" style="margin-top: 30px;">
+                <button id="show-results-button" style="background-color: #8e44ad; display: none;">🏆 最終結果を発表</button>
+                <button id="reset-game-button" style="background-color: #888; margin-left: 10px; display: none;">🔄 ゲームをリセット</button>
+
+                <div id="final-results-box" class="results-box" style="display: none;">
+                    <h3>🎊 ビンゴ達成順位 🎊</h3>
+                    <ol id="bingo-ranking-list"></ol>
+                    <h3>🧠 クイズ正解数ランキング 🧠</h3>
+                    <ol id="quiz-ranking-list"></ol>
                 </div>
             </div>
         </div>
