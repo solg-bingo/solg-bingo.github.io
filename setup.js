@@ -43,7 +43,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('add-quiz-button').addEventListener('click', () => addQuizRow(null));
     document.getElementById('save-button').addEventListener('click', saveConfig);
+    document.getElementById('reset-prefectures-button').addEventListener('click', resetPrefecturesField);
+    document.getElementById('reset-quizzes-button').addEventListener('click', resetQuizzesField);
 });
+
+function resetPrefecturesField() {
+    if (!confirm("自治体リストの入力内容をすべて空にします。よろしいですか？（まだ保存はされません）")) return;
+    document.getElementById('prefectures-textarea').value = '';
+}
+
+function resetQuizzesField() {
+    if (!confirm("クイズをすべて削除します。よろしいですか？（まだ保存はされません）")) return;
+    document.getElementById('quiz-editor-list').innerHTML = '';
+    quizRowCounter = 0;
+}
 
 function tryUnlock() {
     const enteredPassword = document.getElementById('password-input').value;
@@ -116,6 +129,22 @@ function addQuizRow(quiz) {
     rowEl.querySelector('.remove-quiz-button').addEventListener('click', () => {
         rowEl.remove();
         renumberQuizRows();
+    });
+
+    rowEl.querySelector('.move-up-button').addEventListener('click', () => {
+        const prev = rowEl.previousElementSibling;
+        if (prev) {
+            rowEl.parentNode.insertBefore(rowEl, prev);
+            renumberQuizRows();
+        }
+    });
+
+    rowEl.querySelector('.move-down-button').addEventListener('click', () => {
+        const next = rowEl.nextElementSibling;
+        if (next) {
+            rowEl.parentNode.insertBefore(next, rowEl);
+            renumberQuizRows();
+        }
     });
 
     document.getElementById('quiz-editor-list').appendChild(fragment);

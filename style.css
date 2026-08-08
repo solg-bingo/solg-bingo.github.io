@@ -147,6 +147,13 @@ button {
 .quiz-row-title {
     font-weight: bold;
 }
+.move-up-button,
+.move-down-button {
+    background-color: #6c757d;
+    padding: 4px 10px;
+    font-size: 0.85em;
+    margin-right: 4px;
+}
 .remove-quiz-button {
     background-color: #dc3545;
     padding: 4px 10px;

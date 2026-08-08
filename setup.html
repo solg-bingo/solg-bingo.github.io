@@ -30,11 +30,13 @@
         <h2>🏙️ 自治体リスト（ビンゴのマスに使う言葉）</h2>
         <p style="font-size: 0.9em; color: #666;">1行に1つずつ入力してください。9個以上必要です。</p>
         <textarea id="prefectures-textarea" rows="14" style="width: 100%; box-sizing: border-box; padding: 8px; font-size: 1em;"></textarea>
+        <button id="reset-prefectures-button" type="button" style="background-color: #dc3545; margin-top: 8px;">🗑️ 自治体リストを空にする</button>
 
         <h2 style="margin-top: 30px;">🧠 クイズ一覧</h2>
         <p style="font-size: 0.9em; color: #666;">✊✌️✋の順に選択肢を入力し、正解を選んでください。</p>
         <div id="quiz-editor-list"></div>
         <button id="add-quiz-button" type="button" style="background-color: #5cb85c;">＋ クイズを追加</button>
+        <button id="reset-quizzes-button" type="button" style="background-color: #dc3545;">🗑️ クイズをすべて削除</button>
 
         <h2 style="margin-top: 30px;">🔑 パスワード変更（任意）</h2>
         <p style="font-size: 0.9em; color: #666;">変更したい場合のみ入力してください。空欄なら今回入力したパスワードのまま保存されます。</p>
@@ -50,7 +52,11 @@
         <div class="quiz-row">
             <div class="quiz-row-header">
                 <span class="quiz-row-title"></span>
-                <button type="button" class="remove-quiz-button">✕ 削除</button>
+                <span>
+                    <button type="button" class="move-up-button" title="上に移動">↑</button>
+                    <button type="button" class="move-down-button" title="下に移動">↓</button>
+                    <button type="button" class="remove-quiz-button">✕ 削除</button>
+                </span>
             </div>
             <label>質問文</label>
             <textarea class="quiz-question" rows="2"></textarea>
