@@ -38,6 +38,16 @@
         <button id="add-quiz-button" type="button" style="background-color: #5cb85c;">＋ クイズを追加</button>
         <button id="reset-quizzes-button" type="button" style="background-color: #dc3545;">🗑️ クイズをすべて削除</button>
 
+        <h2 style="margin-top: 30px;">🖼️ 自治体マスコット画像（任意）</h2>
+        <p style="font-size: 0.9em; color: #666;">
+            自治体名と画像パスを対応付けると、その自治体が抽選されたときに親機の画面に画像が表示されます。<br>
+            画像ファイル自体は事前に<code>images/</code>フォルダに入れておく必要があります(このページからのアップロードはできません)。<br>
+            すべての自治体に用意する必要はなく、対応付けたものだけ表示されます。
+        </p>
+        <div id="image-editor-list"></div>
+        <button id="add-image-button" type="button" style="background-color: #5cb85c;">＋ 画像対応を追加</button>
+        <button id="reset-images-button" type="button" style="background-color: #dc3545;">🗑️ 画像対応をすべて削除</button>
+
         <h2 style="margin-top: 30px;">🔑 パスワード変更（任意）</h2>
         <p style="font-size: 0.9em; color: #666;">変更したい場合のみ入力してください。空欄なら今回入力したパスワードのまま保存されます。</p>
         <input type="password" id="new-password-input" placeholder="新しいパスワード（任意）" style="padding: 8px; width: 220px;">
@@ -71,6 +81,14 @@
                 <option value="ちょき">✌️ ちょき</option>
                 <option value="ぱー">✋ ぱー</option>
             </select>
+        </div>
+    </template>
+
+    <template id="image-row-template">
+        <div class="image-row">
+            <input type="text" class="image-prefecture" placeholder="自治体名（例: つくば市）">
+            <input type="text" class="image-path" placeholder="画像パス（例: images/tsukuba.svg）">
+            <button type="button" class="remove-image-button">✕</button>
         </div>
     </template>
 

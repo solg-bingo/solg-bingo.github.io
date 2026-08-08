@@ -33,6 +33,14 @@ const DEFAULT_QUIZLIST = [
     { id: 15, question: "雑煮の餅の形、「東は四角、西は丸」と言われているが、その境目はどこ？", answer: "ぱー", choices: ["飛騨", "諏訪", "関ケ原"] }
 ];
 
+// 初回利用時のマスコット画像の初期値
+const DEFAULT_PREFECTURE_IMAGES = {
+    "札幌市": "images/sample_sapporo.svg",
+    "横浜市": "images/sample_yokohama.svg",
+    "鎌倉市": "images/sample_kamakura.svg",
+    "つくば市": "images/sample_tsukuba.svg"
+};
+
 let unlockedPassword = null; // 認証に使った（＝これから保存する）パスワード
 let quizRowCounter = 0;
 
@@ -45,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-button').addEventListener('click', saveConfig);
     document.getElementById('reset-prefectures-button').addEventListener('click', resetPrefecturesField);
     document.getElementById('reset-quizzes-button').addEventListener('click', resetQuizzesField);
+    document.getElementById('add-image-button').addEventListener('click', () => addImageRow('', ''));
+    document.getElementById('reset-images-button').addEventListener('click', resetImagesField);
 });
 
 function resetPrefecturesField() {
@@ -56,6 +66,11 @@ function resetQuizzesField() {
     if (!confirm("クイズをすべて削除します。よろしいですか？（まだ保存はされません）")) return;
     document.getElementById('quiz-editor-list').innerHTML = '';
     quizRowCounter = 0;
+}
+
+function resetImagesField() {
+    if (!confirm("マスコット画像の対応をすべて削除します。よろしいですか？（まだ保存はされません）")) return;
+    document.getElementById('image-editor-list').innerHTML = '';
 }
 
 function tryUnlock() {
@@ -108,6 +123,29 @@ function populateForm(data) {
     listEl.innerHTML = '';
     quizRowCounter = 0;
     quizList.forEach(quiz => addQuizRow(quiz));
+
+    const prefectureImages = (data && data.prefectureImages && typeof data.prefectureImages === 'object')
+        ? data.prefectureImages
+        : DEFAULT_PREFECTURE_IMAGES;
+
+    const imageListEl = document.getElementById('image-editor-list');
+    imageListEl.innerHTML = '';
+    Object.keys(prefectureImages).forEach(name => addImageRow(name, prefectureImages[name]));
+}
+
+function addImageRow(name, path) {
+    const template = document.getElementById('image-row-template');
+    const fragment = template.content.cloneNode(true);
+    const rowEl = fragment.querySelector('.image-row');
+
+    rowEl.querySelector('.image-prefecture').value = name || '';
+    rowEl.querySelector('.image-path').value = path || '';
+
+    rowEl.querySelector('.remove-image-button').addEventListener('click', () => {
+        rowEl.remove();
+    });
+
+    document.getElementById('image-editor-list').appendChild(fragment);
 }
 
 function addQuizRow(quiz) {
@@ -187,6 +225,20 @@ function saveConfig() {
         quizList.push({ id: i + 1, question, answer, choices });
     }
 
+    const prefectureImages = {};
+    const imageRows = document.querySelectorAll('#image-editor-list .image-row');
+    for (let i = 0; i < imageRows.length; i++) {
+        const name = imageRows[i].querySelector('.image-prefecture').value.trim();
+        const path = imageRows[i].querySelector('.image-path').value.trim();
+        if (!name && !path) continue; // 両方空欄の行は無視
+        if (!name || !path) {
+            saveMessage.style.color = 'red';
+            saveMessage.textContent = `マスコット画像の${i + 1}行目：自治体名と画像パスの両方を入力してください（不要な行は✕で削除）。`;
+            return;
+        }
+        prefectureImages[name] = path;
+    }
+
     const newPasswordInput = document.getElementById('new-password-input').value.trim();
     const passwordToSave = newPasswordInput || unlockedPassword;
 
@@ -196,6 +248,7 @@ function saveConfig() {
     configRef.set({
         targetPrefectures: prefectures,
         quizList: quizList,
+        prefectureImages: prefectureImages,
         setupPassword: passwordToSave
     }, { merge: true })
     .then(() => {

@@ -114,9 +114,10 @@ let quizList = [
     }
 ];
 
-// ★★★ サンプル：自治体名 → ゆるキャラ画像のマッピング ★★★
-// ここに用意した画像を割り当てると、ビンゴのマスや抽選結果にキャラクターが表示されます（未設定の自治体は今まで通り文字のみ）
-const prefectureImages = {
+// ★★★ サンプル：自治体名 → ゆるキャラ画像のマッピング（デフォルト値） ★★★
+// setup.htmlで画像パスを設定した場合は、起動時にそちらで上書きされます
+// （未設定の自治体は今まで通り文字のみ表示されます）
+let prefectureImages = {
     "札幌市": "images/sample_sapporo.svg",
     "横浜市": "images/sample_yokohama.svg",
     "鎌倉市": "images/sample_kamakura.svg",
@@ -168,6 +169,9 @@ function loadGameConfig() {
             }
             if (Array.isArray(data.quizList) && data.quizList.length > 0) {
                 quizList = data.quizList;
+            }
+            if (data.prefectureImages && typeof data.prefectureImages === 'object') {
+                prefectureImages = data.prefectureImages;
             }
         })
         .catch(error => {

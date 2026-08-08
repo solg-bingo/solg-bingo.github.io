@@ -185,6 +185,26 @@ button {
     box-sizing: border-box;
     padding: 6px;
 }
+.image-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.image-row input {
+    padding: 6px;
+    box-sizing: border-box;
+}
+.image-row .image-prefecture {
+    flex: 1 1 150px;
+}
+.image-row .image-path {
+    flex: 2 1 250px;
+}
+.image-row .remove-image-button {
+    background-color: #dc3545;
+    padding: 4px 10px;
+    font-size: 0.85em;
+}
 
 /* クリック遮断用オーバーレイのスタイル */
 #click-blocker {
