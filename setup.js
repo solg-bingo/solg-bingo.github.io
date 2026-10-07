@@ -266,7 +266,7 @@ function saveConfig() {
         quizList: quizList,
         prefectureImages: prefectureImages,
         setupPassword: passwordToSave
-    }, { merge: true })
+    }, { mergeFields: ['targetPrefectures', 'quizList', 'prefectureImages', 'setupPassword'] }) // merge:trueだとマップ内の削除が反映されないため、項目ごと置き換える
     .then(() => {
         unlockedPassword = passwordToSave;
         document.getElementById('new-password-input').value = '';
