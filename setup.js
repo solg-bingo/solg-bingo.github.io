@@ -35,10 +35,20 @@ const DEFAULT_QUIZLIST = [
 
 // 初回利用時のマスコット画像の初期値
 const DEFAULT_PREFECTURE_IMAGES = {
-    "札幌市": "images/sample_sapporo.svg",
-    "横浜市": "images/sample_yokohama.svg",
-    "鎌倉市": "images/sample_kamakura.svg",
-    "つくば市": "images/sample_tsukuba.svg"
+    "茨城町": "images/ibaraki.jpg",
+    "石岡市": "images/ishioka.jpg",
+    "常総市": "images/joso.png",
+    "加賀市": "images/kaga.jpg",
+    "沼田市": "images/numata.jpg",
+    "小千谷市": "images/odiya.jpg",
+    "佐野市": "images/sano.png",
+    "札幌市": "images/sapporo.png",
+    "城里町": "images/shirosato.png",
+    "高岡市": "images/takaoka.png",
+    "高崎市": "images/takasaki.jpg",
+    "栃木市": "images/tochigi.jpg",
+    "土浦市": "images/tsuchiura.jpg",
+    "つくば市": "images/tsukuba.jpg"
 };
 
 let unlockedPassword = null; // 認証に使った（＝これから保存する）パスワード

@@ -53,6 +53,7 @@ button {
 .draw-mascot {
     width: 200px;
     height: 200px;
+    object-fit: contain;
     vertical-align: middle;
 }
 /* マークされたマスのスタイル */
