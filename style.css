@@ -185,25 +185,28 @@ button {
     box-sizing: border-box;
     padding: 6px;
 }
+#image-editor-list {
+    max-height: 360px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #fafafa;
+}
 .image-row {
     display: flex;
+    align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
-.image-row input {
-    padding: 6px;
-    box-sizing: border-box;
-}
-.image-row .image-prefecture {
-    flex: 1 1 150px;
+.image-row .image-prefecture-label {
+    flex: 0 0 8em;
+    font-weight: bold;
 }
 .image-row .image-path {
-    flex: 2 1 250px;
-}
-.image-row .remove-image-button {
-    background-color: #dc3545;
-    padding: 4px 10px;
-    font-size: 0.85em;
+    flex: 1 1 auto;
+    padding: 6px;
+    box-sizing: border-box;
 }
 
 /* クリック遮断用オーバーレイのスタイル */

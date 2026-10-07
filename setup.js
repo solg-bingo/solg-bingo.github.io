@@ -43,6 +43,7 @@ const DEFAULT_PREFECTURE_IMAGES = {
 
 let unlockedPassword = null; // 認証に使った（＝これから保存する）パスワード
 let quizRowCounter = 0;
+let imagePaths = {}; // 自治体名 → 画像パス（自治体リストの増減で行が作り直されても入力値を保持する）
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('unlock-button').addEventListener('click', tryUnlock);
@@ -53,13 +54,40 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-button').addEventListener('click', saveConfig);
     document.getElementById('reset-prefectures-button').addEventListener('click', resetPrefecturesField);
     document.getElementById('reset-quizzes-button').addEventListener('click', resetQuizzesField);
-    document.getElementById('add-image-button').addEventListener('click', () => addImageRow('', ''));
     document.getElementById('reset-images-button').addEventListener('click', resetImagesField);
+    document.getElementById('prefectures-textarea').addEventListener('input', syncImageRows);
 });
+
+function getPrefectureNames() {
+    const names = document.getElementById('prefectures-textarea').value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    return Array.from(new Set(names));
+}
+
+// 自治体リストの内容に合わせて、マスコット画像の入力行を作り直す
+function syncImageRows() {
+    const listEl = document.getElementById('image-editor-list');
+    const template = document.getElementById('image-row-template');
+    listEl.innerHTML = '';
+
+    getPrefectureNames().forEach(name => {
+        const fragment = template.content.cloneNode(true);
+        const input = fragment.querySelector('.image-path');
+        fragment.querySelector('.image-prefecture-label').textContent = name;
+        input.value = imagePaths[name] || '';
+        input.addEventListener('input', () => {
+            imagePaths[name] = input.value;
+        });
+        listEl.appendChild(fragment);
+    });
+}
 
 function resetPrefecturesField() {
     if (!confirm("自治体リストの入力内容をすべて空にします。よろしいですか？（まだ保存はされません）")) return;
     document.getElementById('prefectures-textarea').value = '';
+    syncImageRows();
 }
 
 function resetQuizzesField() {
@@ -69,8 +97,9 @@ function resetQuizzesField() {
 }
 
 function resetImagesField() {
-    if (!confirm("マスコット画像の対応をすべて削除します。よろしいですか？（まだ保存はされません）")) return;
-    document.getElementById('image-editor-list').innerHTML = '';
+    if (!confirm("マスコット画像のパスをすべて空にします。よろしいですか？（まだ保存はされません）")) return;
+    imagePaths = {};
+    syncImageRows();
 }
 
 function tryUnlock() {
@@ -128,24 +157,8 @@ function populateForm(data) {
         ? data.prefectureImages
         : DEFAULT_PREFECTURE_IMAGES;
 
-    const imageListEl = document.getElementById('image-editor-list');
-    imageListEl.innerHTML = '';
-    Object.keys(prefectureImages).forEach(name => addImageRow(name, prefectureImages[name]));
-}
-
-function addImageRow(name, path) {
-    const template = document.getElementById('image-row-template');
-    const fragment = template.content.cloneNode(true);
-    const rowEl = fragment.querySelector('.image-row');
-
-    rowEl.querySelector('.image-prefecture').value = name || '';
-    rowEl.querySelector('.image-path').value = path || '';
-
-    rowEl.querySelector('.remove-image-button').addEventListener('click', () => {
-        rowEl.remove();
-    });
-
-    document.getElementById('image-editor-list').appendChild(fragment);
+    imagePaths = Object.assign({}, prefectureImages);
+    syncImageRows();
 }
 
 function addQuizRow(quiz) {
@@ -225,19 +238,12 @@ function saveConfig() {
         quizList.push({ id: i + 1, question, answer, choices });
     }
 
+    // 自治体リストに載っている自治体のうち、画像パスが入力されているものだけ保存する
     const prefectureImages = {};
-    const imageRows = document.querySelectorAll('#image-editor-list .image-row');
-    for (let i = 0; i < imageRows.length; i++) {
-        const name = imageRows[i].querySelector('.image-prefecture').value.trim();
-        const path = imageRows[i].querySelector('.image-path').value.trim();
-        if (!name && !path) continue; // 両方空欄の行は無視
-        if (!name || !path) {
-            saveMessage.style.color = 'red';
-            saveMessage.textContent = `マスコット画像の${i + 1}行目：自治体名と画像パスの両方を入力してください（不要な行は✕で削除）。`;
-            return;
-        }
-        prefectureImages[name] = path;
-    }
+    prefectures.forEach(name => {
+        const path = (imagePaths[name] || '').trim();
+        if (path) prefectureImages[name] = path;
+    });
 
     const newPasswordInput = document.getElementById('new-password-input').value.trim();
     const passwordToSave = newPasswordInput || unlockedPassword;

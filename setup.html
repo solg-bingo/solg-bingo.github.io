@@ -18,6 +18,7 @@
         <input type="password" id="password-input" placeholder="パスワード" style="padding: 8px; width: 200px;">
         <button id="unlock-button" style="background-color: #007bff; padding: 8px 16px;">開く</button>
         <p id="password-message" style="color: red; font-weight: bold;"></p>
+        <p id="password-hint" style="font-size: 0.9em; color: #555;">ヒント：国際太郎</p>
         <p style="font-size: 0.85em; color: #666; margin-top: 20px;">
             ※初めて使う場合は、好きなパスワードを決めて入力し「開く」を押してください。<br>
             そのまま内容を保存すると、次回からはそのパスワードが必要になります。
@@ -40,13 +41,12 @@
 
         <h2 style="margin-top: 30px;">🖼️ 自治体マスコット画像（任意）</h2>
         <p style="font-size: 0.9em; color: #666;">
-            自治体名と画像パスを対応付けると、その自治体が抽選されたときに親機の画面に画像が表示されます。<br>
+            上の自治体リストに入力した自治体がここに自動で一覧表示されます。画像を表示したい自治体の欄にだけ、画像パスを入力してください。<br>
             画像ファイル自体は事前に<code>images/</code>フォルダに入れておく必要があります(このページからのアップロードはできません)。<br>
-            すべての自治体に用意する必要はなく、対応付けたものだけ表示されます。
+            画像パスが空欄の自治体は、今まで通り文字だけが表示されます。
         </p>
         <div id="image-editor-list"></div>
-        <button id="add-image-button" type="button" style="background-color: #5cb85c;">＋ 画像対応を追加</button>
-        <button id="reset-images-button" type="button" style="background-color: #dc3545;">🗑️ 画像対応をすべて削除</button>
+        <button id="reset-images-button" type="button" style="background-color: #dc3545; margin-top: 8px;">🗑️ 画像パスをすべて空にする</button>
 
         <h2 style="margin-top: 30px;">🔑 パスワード変更（任意）</h2>
         <p style="font-size: 0.9em; color: #666;">変更したい場合のみ入力してください。空欄なら今回入力したパスワードのまま保存されます。</p>
@@ -86,9 +86,8 @@
 
     <template id="image-row-template">
         <div class="image-row">
-            <input type="text" class="image-prefecture" placeholder="自治体名（例: つくば市）">
+            <span class="image-prefecture-label"></span>
             <input type="text" class="image-path" placeholder="画像パス（例: images/tsukuba.svg）">
-            <button type="button" class="remove-image-button">✕</button>
         </div>
     </template>
 
