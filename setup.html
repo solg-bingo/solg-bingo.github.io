@@ -43,7 +43,8 @@
         <p style="font-size: 0.9em; color: #666;">
             上の自治体リストに入力した自治体がここに自動で一覧表示されます。画像を表示したい自治体の欄にだけ、画像パスを入力してください。<br>
             画像ファイル自体は事前に<code>images/</code>フォルダに入れておく必要があります(このページからのアップロードはできません)。<br>
-            画像パスが空欄の自治体は、今まで通り文字だけが表示されます。
+            画像パスが空欄の自治体は、今まで通り文字だけが表示されます。<br>
+            利用条件で出所の明記が求められる自治体は、右の「出所表記」欄に書いておくと、画像の下に小さく表示されます。
         </p>
         <div id="image-editor-list"></div>
         <button id="reset-images-button" type="button" style="background-color: #dc3545; margin-top: 8px;">🗑️ 画像パスをすべて空にする</button>
@@ -88,6 +89,7 @@
         <div class="image-row">
             <span class="image-prefecture-label"></span>
             <input type="text" class="image-path" placeholder="画像パス（例: images/tsukuba.svg）">
+            <input type="text" class="image-credit" placeholder="出所表記（必要な自治体のみ）">
         </div>
     </template>
 

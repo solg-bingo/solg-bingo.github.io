@@ -56,6 +56,13 @@ button {
     object-fit: contain;
     vertical-align: middle;
 }
+/* 抽選結果の画像の出所表記 */
+.draw-credit {
+    font-size: 0.3em;
+    font-weight: normal;
+    color: #555;
+    margin-top: 4px;
+}
 /* マークされたマスのスタイル */
 .marked {
     background-color: #4CAF50; /* 緑色 */
@@ -205,7 +212,12 @@ button {
     font-weight: bold;
 }
 .image-row .image-path {
-    flex: 1 1 auto;
+    flex: 1 1 40%;
+    padding: 6px;
+    box-sizing: border-box;
+}
+.image-row .image-credit {
+    flex: 1 1 40%;
     padding: 6px;
     box-sizing: border-box;
 }

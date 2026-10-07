@@ -48,12 +48,23 @@ const DEFAULT_PREFECTURE_IMAGES = {
     "高崎市": "images/takasaki.jpg",
     "栃木市": "images/tochigi.jpg",
     "土浦市": "images/tsuchiura.jpg",
-    "つくば市": "images/tsukuba.jpg"
+    "つくば市": "images/tsukuba.jpg",
+    "蓮田市": "images/hasuda.png",
+    "鴻巣市": "images/kounosu.jpg",
+    "三郷市": "images/misato.jpg"
+};
+
+// 利用条件で出所明記が求められる自治体の出所表記の初期値
+const DEFAULT_PREFECTURE_IMAGE_CREDITS = {
+    "蓮田市": "蓮田市マスコットキャラクター「はすぴぃ」",
+    "鴻巣市": "鴻巣市メインキャラクター「ひなちゃん」",
+    "三郷市": "三郷市マスコットキャラクター「かいちゃん&つぶちゃん」"
 };
 
 let unlockedPassword = null; // 認証に使った（＝これから保存する）パスワード
 let quizRowCounter = 0;
 let imagePaths = {}; // 自治体名 → 画像パス（自治体リストの増減で行が作り直されても入力値を保持する）
+let imageCredits = {}; // 自治体名 → 出所表記（同上）
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('unlock-button').addEventListener('click', tryUnlock);
@@ -85,10 +96,15 @@ function syncImageRows() {
     getPrefectureNames().forEach(name => {
         const fragment = template.content.cloneNode(true);
         const input = fragment.querySelector('.image-path');
+        const creditInput = fragment.querySelector('.image-credit');
         fragment.querySelector('.image-prefecture-label').textContent = name;
         input.value = imagePaths[name] || '';
+        creditInput.value = imageCredits[name] || '';
         input.addEventListener('input', () => {
             imagePaths[name] = input.value;
+        });
+        creditInput.addEventListener('input', () => {
+            imageCredits[name] = creditInput.value;
         });
         listEl.appendChild(fragment);
     });
@@ -107,8 +123,9 @@ function resetQuizzesField() {
 }
 
 function resetImagesField() {
-    if (!confirm("マスコット画像のパスをすべて空にします。よろしいですか？（まだ保存はされません）")) return;
+    if (!confirm("マスコット画像のパスと出所表記をすべて空にします。よろしいですか？（まだ保存はされません）")) return;
     imagePaths = {};
+    imageCredits = {};
     syncImageRows();
 }
 
@@ -168,6 +185,9 @@ function populateForm(data) {
         : DEFAULT_PREFECTURE_IMAGES;
 
     imagePaths = Object.assign({}, prefectureImages);
+    imageCredits = Object.assign({}, (data && data.prefectureImageCredits && typeof data.prefectureImageCredits === 'object')
+        ? data.prefectureImageCredits
+        : DEFAULT_PREFECTURE_IMAGE_CREDITS);
     syncImageRows();
 }
 
@@ -250,9 +270,14 @@ function saveConfig() {
 
     // 自治体リストに載っている自治体のうち、画像パスが入力されているものだけ保存する
     const prefectureImages = {};
+    // 出所表記は、画像パスが入力されている自治体のものだけ保存する
+    const prefectureImageCredits = {};
     prefectures.forEach(name => {
         const path = (imagePaths[name] || '').trim();
-        if (path) prefectureImages[name] = path;
+        if (!path) return;
+        prefectureImages[name] = path;
+        const credit = (imageCredits[name] || '').trim();
+        if (credit) prefectureImageCredits[name] = credit;
     });
 
     const newPasswordInput = document.getElementById('new-password-input').value.trim();
@@ -265,8 +290,9 @@ function saveConfig() {
         targetPrefectures: prefectures,
         quizList: quizList,
         prefectureImages: prefectureImages,
+        prefectureImageCredits: prefectureImageCredits,
         setupPassword: passwordToSave
-    }, { mergeFields: ['targetPrefectures', 'quizList', 'prefectureImages', 'setupPassword'] }) // merge:trueだとマップ内の削除が反映されないため、項目ごと置き換える
+    }, { mergeFields: ['targetPrefectures', 'quizList', 'prefectureImages', 'prefectureImageCredits', 'setupPassword'] }) // merge:trueだとマップ内の削除が反映されないため、項目ごと置き換える
     .then(() => {
         unlockedPassword = passwordToSave;
         document.getElementById('new-password-input').value = '';

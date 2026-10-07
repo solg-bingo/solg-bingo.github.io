@@ -131,7 +131,18 @@ let prefectureImages = {
     "高崎市": "images/takasaki.jpg",
     "栃木市": "images/tochigi.jpg",
     "土浦市": "images/tsuchiura.jpg",
-    "つくば市": "images/tsukuba.jpg"
+    "つくば市": "images/tsukuba.jpg",
+    "蓮田市": "images/hasuda.png",
+    "鴻巣市": "images/kounosu.jpg",
+    "三郷市": "images/misato.jpg"
+};
+
+// 画像の出所表記(自治体名 → 表示する文字)。利用条件で出所明記が求められる自治体用
+// setup.htmlで設定した場合は、起動時にそちらで上書きされます
+let prefectureImageCredits = {
+    "蓮田市": "蓮田市マスコットキャラクター「はすぴぃ」",
+    "鴻巣市": "鴻巣市メインキャラクター「ひなちゃん」",
+    "三郷市": "三郷市マスコットキャラクター「かいちゃん&つぶちゃん」"
 };
 
 let currentDrawnPrefectures = [];
@@ -182,6 +193,9 @@ function loadGameConfig() {
             }
             if (data.prefectureImages && typeof data.prefectureImages === 'object') {
                 prefectureImages = data.prefectureImages;
+            }
+            if (data.prefectureImageCredits && typeof data.prefectureImageCredits === 'object') {
+                prefectureImageCredits = data.prefectureImageCredits;
             }
         })
         .catch(error => {
@@ -354,6 +368,15 @@ function showCurrentDraw(name) {
         currentDrawElement.appendChild(document.createElement('br'));
     }
     currentDrawElement.appendChild(document.createTextNode(name));
+
+    // 画像を表示している自治体のうち、出所表記が設定されているものは名前の下に小さく表示する
+    const credit = imageUrl ? prefectureImageCredits[name] : null;
+    if (credit) {
+        const creditEl = document.createElement('div');
+        creditEl.classList.add('draw-credit');
+        creditEl.textContent = credit;
+        currentDrawElement.appendChild(creditEl);
+    }
 }
 
 function handlePlayerQuizUI(data) {
@@ -556,9 +579,8 @@ function resetQuizState() {
 
     // 1. 親機UIリセット 
     document.getElementById('quiz-area').style.display = 'none';
-    const currentDrawElement = document.getElementById('current-draw');
-    if(currentDrawElement) currentDrawElement.textContent = currentDrawnPrefectures[currentDrawnPrefectures.length - 1] || '---';
-    
+    showCurrentDraw(currentDrawnPrefectures[currentDrawnPrefectures.length - 1] || '---');
+
     // 抽選・クイズボタンの有効化
     document.getElementById('quiz-trigger-button').disabled = false;
     document.getElementById('draw-next-button').disabled = false; 
