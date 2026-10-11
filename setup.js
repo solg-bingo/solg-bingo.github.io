@@ -56,23 +56,23 @@ const DEFAULT_PREFECTURE_IMAGES = {
 
 // 利用条件で出所明記が求められる自治体の出所表記の初期値
 const DEFAULT_PREFECTURE_IMAGE_CREDITS = {
-    "蓮田市": "蓮田市マスコットキャラクター「はすぴぃ」",
-    "鴻巣市": "鴻巣市メインキャラクター「ひなちゃん」",
-    "三郷市": "三郷市マスコットキャラクター「かいちゃん&つぶちゃん」",
-    "札幌市": "出典: 札幌市公式サイト(city.sapporo.jp)",
-    "小千谷市": "出典: 小千谷市公式サイト(city.ojiya.niigata.jp)",
-    "高岡市": "出典: 高岡市公式サイト(city.takaoka.toyama.jp)",
-    "栃木市": "出典: 栃木市公式サイト(city.tochigi.lg.jp)",
-    "佐野市": "出典: 佐野市公式サイト(city.sano.lg.jp)",
-    "沼田市": "出典: 沼田市公式サイト(city.numata.gunma.jp)",
-    "城里町": "出典: 城里町公式サイト(town.shirosato.lg.jp)",
-    "茨城町": "出典: 茨城町公式サイト(town.ibaraki.lg.jp)",
-    "土浦市": "出典: 土浦市公式サイト(city.tsuchiura.lg.jp)",
-    "石岡市": "出典: 石岡市公式サイト(city.ishioka.lg.jp)",
-    "つくば市": "出典: つくば市公式サイト(city.tsukuba.lg.jp)",
-    "常総市": "出典: 常総市観光物産協会(joso-kankou.com)",
-    "加賀市": "出典: 国土数値情報(国土交通省)を加工して作成",
-    "高崎市": "出典: 国土数値情報(国土交通省)を加工して作成"
+    "蓮田市": "出典：蓮田市マスコットキャラクター「はすぴぃ」",
+    "鴻巣市": "出典：鴻巣市メインキャラクター「ひなちゃん」",
+    "三郷市": "出典：三郷市マスコットキャラクター「かいちゃん&つぶちゃん」",
+    "札幌市": "出典：札幌市公式サイト(city.sapporo.jp)",
+    "小千谷市": "出典：小千谷市公式サイト(city.ojiya.niigata.jp)",
+    "高岡市": "出典：高岡市公式サイト(city.takaoka.toyama.jp)",
+    "栃木市": "出典：栃木市公式サイト(city.tochigi.lg.jp)",
+    "佐野市": "出典：佐野市公式サイト(city.sano.lg.jp)",
+    "沼田市": "出典：沼田市公式サイト(city.numata.gunma.jp)",
+    "城里町": "出典：城里町公式サイト(town.shirosato.lg.jp)",
+    "茨城町": "出典：茨城町公式サイト(town.ibaraki.lg.jp)",
+    "土浦市": "出典：土浦市公式サイト(city.tsuchiura.lg.jp)",
+    "石岡市": "出典：石岡市公式サイト(city.ishioka.lg.jp)",
+    "つくば市": "出典：つくば市公式サイト(city.tsukuba.lg.jp)",
+    "常総市": "出典：常総市観光物産協会(joso-kankou.com)",
+    "加賀市": "出典：国土数値情報(国土交通省)を加工して作成",
+    "高崎市": "出典：国土数値情報(国土交通省)を加工して作成"
 };
 
 let unlockedPassword = null; // 認証に使った（＝これから保存する）パスワード
