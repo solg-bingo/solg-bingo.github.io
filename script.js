@@ -306,6 +306,11 @@ function initializeApp() {
     if (resetGameButton) {
         resetGameButton.addEventListener('click', resetGame);
     }
+    const demoResultsButton = document.getElementById('demo-results-button');
+    if (demoResultsButton) {
+        demoResultsButton.addEventListener('click', showDemoResults);
+        demoResultsButton.style.display = isDebugMode ? 'inline-block' : 'none';
+    }
     // ★★★ 紐づけ処理終わり ★★★
 
     // 本番URL(&debug=1なし)では開発者向けの「ゲームをリセット」「最終結果を発表」ボタンを隠す
@@ -1031,6 +1036,9 @@ window.debugForceDraw = function (prefectureName) {
 // F12 → ResetGame() で「🔄 ゲームをリセット」ボタンと同じ処理を実行する
 window.ResetGame = resetGame;
 
+// F12 → DemoResults() で、ダミーデータの最終結果を画面に表示する(説明用)
+window.DemoResults = showDemoResults;
+
 // 親機: ビンゴ達成順位・9マス全空き順位・クイズ正解数ランキングを取得して表示する
 // 景品の対象人数(上位N名)
 const BINGO_PRIZE_COUNT = 10;
@@ -1114,6 +1122,30 @@ function renderPrizeWinners(box, bingoRows, fullCardRows, quizRows) {
     });
 }
 
+// 取得済みの成績から、3つのランキングと景品当選者を画面に描画する
+function renderFinalResults(bingoRows, fullCardRows, quizRows) {
+    const box = document.getElementById('final-results-box');
+    box.style.display = 'block';
+    renderRanking(document.getElementById('bingo-ranking-list'), bingoRows, BINGO_PRIZE_COUNT,
+        'まだビンゴ達成者がいません。', row => row.userId);
+    renderRanking(document.getElementById('full-card-ranking-list'), fullCardRows, FULL_CARD_PRIZE_COUNT,
+        'まだ9マス全空きの人がいません。', row => row.userId);
+    renderRanking(document.getElementById('quiz-ranking-list'), quizRows, QUIZ_PRIZE_COUNT,
+        'まだ正解者がいません。', row => `${row.userId}（${row.score}問正解）`);
+    renderPrizeWinners(document.getElementById('prize-winners'), bingoRows, fullCardRows, quizRows);
+}
+
+// 説明用: ダミーの成績で最終結果の画面を表示する(Firestoreには何も書き込まない)
+function showDemoResults() {
+    const names = ['佐藤', '田中', '鈴木', '高橋', '伊藤', '渡辺', '山本', '中村', '小林', '加藤',
+        '吉田', '山田', '佐々木', '松本', '井上', '木村', '林', '斎藤', '清水', '山口'];
+    const byOrder = ids => ids.map((userId, i) => ({ userId, score: i }));
+    const quizScores = { 田中: 8, 佐藤: 7, 山本: 7, 伊藤: 6, 小林: 6, 山田: 6, 松本: 5, 井上: 5, 木村: 5, 林: 5, 斎藤: 4, 清水: 4, 山口: 3 };
+    const quizRows = Object.keys(quizScores).map(userId => ({ userId, score: quizScores[userId] }));
+    renderFinalResults(byOrder(names), byOrder(['田中', '鈴木', '林']), quizRows);
+    document.getElementById('final-results-box').scrollIntoView();
+}
+
 function showFinalResults() {
     const box = document.getElementById('final-results-box');
     const bingoList = document.getElementById('bingo-ranking-list');
@@ -1136,11 +1168,7 @@ function showFinalResults() {
 
     Promise.all([loadByTime('bingoWinners'), loadByTime('fullCardWinners'), loadQuiz()])
         .then(([bingoRows, fullCardRows, quizRows]) => {
-            renderRanking(bingoList, bingoRows, BINGO_PRIZE_COUNT, 'まだビンゴ達成者がいません。', row => row.userId);
-            renderRanking(fullCardList, fullCardRows, FULL_CARD_PRIZE_COUNT, 'まだ9マス全空きの人がいません。', row => row.userId);
-            renderRanking(quizRankingList, quizRows, QUIZ_PRIZE_COUNT, 'まだ正解者がいません。',
-                row => `${row.userId}（${row.score}問正解）`);
-            renderPrizeWinners(prizeBox, bingoRows, fullCardRows, quizRows);
+            renderFinalResults(bingoRows, fullCardRows, quizRows);
         })
         .catch(error => {
             console.error("最終結果の取得に失敗しました:", error);
