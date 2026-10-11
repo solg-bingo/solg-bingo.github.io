@@ -1056,7 +1056,7 @@ function renderRanking(listEl, rows, limit, emptyText, labelOf) {
 }
 
 // 景品当選者を決める。1人1つまで。難しい賞から順に確定し、すでに当選した人は飛ばして繰り下げる
-// 賞の順番: 9マス全空き → クイズ正解数 → ビンゴ達成
+// 賞の順番: 9マス全空き → ビンゴ達成 → クイズ正解数
 // rows は成績の良い順。ties が true の賞は、境目で同点の人が出たら「同点」として別枠で返す
 function pickPrizeWinners(rows, count, taken, ties) {
     const candidates = rows.filter(r => !taken.has(r.userId));
@@ -1073,17 +1073,15 @@ function pickPrizeWinners(rows, count, taken, ties) {
 
 function renderPrizeWinners(box, bingoRows, fullCardRows, quizRows) {
     const taken = new Set();
-    const pending = new Set(); // 同点で、まだ当選が決まっていない人
     const prizes = [
         { title: '🌟 9マス全空き賞', rows: fullCardRows, count: FULL_CARD_PRIZE_COUNT, ties: false, label: r => r.userId },
-        { title: '🧠 クイズ正解数賞', rows: quizRows, count: QUIZ_PRIZE_COUNT, ties: true, label: r => `${r.userId}（${r.score}問正解）` },
-        { title: '🎊 ビンゴ達成賞', rows: bingoRows, count: BINGO_PRIZE_COUNT, ties: false, label: r => r.userId }
+        { title: '🎊 ビンゴ達成賞', rows: bingoRows, count: BINGO_PRIZE_COUNT, ties: false, label: r => r.userId },
+        { title: '🧠 クイズ正解数賞', rows: quizRows, count: QUIZ_PRIZE_COUNT, ties: true, label: r => `${r.userId}（${r.score}問正解）` }
     ];
     box.innerHTML = '';
     prizes.forEach(prize => {
         const result = pickPrizeWinners(prize.rows, prize.count, taken, prize.ties);
         result.winners.forEach(r => taken.add(r.userId));
-        result.tied.forEach(r => pending.add(r.userId));
 
         const h = document.createElement('h4');
         h.textContent = `${prize.title}（${prize.count}名）`;
@@ -1091,11 +1089,11 @@ function renderPrizeWinners(box, bingoRows, fullCardRows, quizRows) {
 
         const ol = document.createElement('ol');
         if (result.winners.length === 0 && result.tied.length === 0) {
-            ol.innerHTML = '<li>該当者なし</li>';
+            ol.innerHTML = '<li>該当者なし（対象者がいない、または全員が他の賞で当選済み）</li>';
         }
         result.winners.forEach(r => {
             const li = document.createElement('li');
-            li.textContent = prize.label(r) + (pending.has(r.userId) ? '（※クイズ同点の抽選に当たった場合は繰り下げ）' : '');
+            li.textContent = prize.label(r);
             ol.appendChild(li);
         });
         box.appendChild(ol);
