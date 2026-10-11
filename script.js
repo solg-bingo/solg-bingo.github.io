@@ -1034,7 +1034,7 @@ window.ResetGame = resetGame;
 // 親機: ビンゴ達成順位・9マス全空き順位・クイズ正解数ランキングを取得して表示する
 // 景品の対象人数(上位N名)
 const BINGO_PRIZE_COUNT = 10;
-const FULL_CARD_PRIZE_COUNT = 5;
+const FULL_CARD_PRIZE_COUNT = 1;
 const QUIZ_PRIZE_COUNT = 5;
 
 // 順位つきでリストを描画する。同順位(同点)はN位より下でも、N位と同じ順位なら全員表示する
