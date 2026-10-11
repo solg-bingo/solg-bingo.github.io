@@ -567,6 +567,26 @@ function checkBingoAuto() {
             localStorage.setItem('bingoAlerted', 'true');
         }
     }
+
+    // 9マスすべてが空いたら、全空き順位用に記録する
+    if (marks.length === 9 && marks.every(Boolean) && !table.dataset.fullCardAnnounced) {
+        table.dataset.fullCardAnnounced = true;
+        recordFullCardWinner();
+    }
+}
+
+// 9マス全空き順位用に、初回の全空きのみFirestoreに記録する（既に記録済みなら上書きしない）
+function recordFullCardWinner() {
+    const winnerRef = db.collection('fullCardWinners').doc(userId);
+    winnerRef.get().then(doc => {
+        if (doc.exists) return;
+        winnerRef.set({
+            userId: userId,
+            achievedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }).catch(error => {
+        console.error("9マス全空きの記録に失敗しました:", error);
+    });
 }
 
 // 達成順ランキング用に、初回ビンゴのみFirestoreに記録する（既に記録済みなら上書きしない）
@@ -854,17 +874,33 @@ function endQuizReceptionAndJudge() {
         });
 
         // 3. 抽選ロジックと結果表示
+        let lotteryPromise = Promise.resolve();
         if (correctAnswers.length > 0) {
-            const winnerIndex = Math.floor(Math.random() * correctAnswers.length);
-            const winner = correctAnswers[winnerIndex];
-            
-            resultElement.textContent = `🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！🎉`;
-            resultElement.style.color = 'green';
-            
-            document.getElementById('quiz-control-section').style.display = 'none';
-            clearBonusInput();
-            document.getElementById('bonus-section').style.display = 'block';
-            document.getElementById('bonus-prefecture-input').focus();
+            // ビンゴ達成済みの人はマスを開けても意味がないので、抽選対象から外す(全員達成済みなら全正解者から抽選)
+            lotteryPromise = db.collection('bingoWinners').get().then(winnersSnapshot => {
+                const bingoUserIds = new Set();
+                winnersSnapshot.forEach(doc => bingoUserIds.add(doc.id));
+                const notYetBingo = correctAnswers.filter(a => !bingoUserIds.has(a.userId));
+                const pool = notYetBingo.length > 0 ? notYetBingo : correctAnswers;
+                return { pool, excluded: correctAnswers.length - notYetBingo.length, allBingo: notYetBingo.length === 0 };
+            }).catch(error => {
+                // 達成者一覧が取れなくても進行は止めない(全正解者から抽選)
+                console.error("ビンゴ達成者の取得に失敗しました:", error);
+                return { pool: correctAnswers, excluded: 0, allBingo: false };
+            }).then(({ pool, excluded, allBingo }) => {
+                const winner = pool[Math.floor(Math.random() * pool.length)];
+
+                let note = '';
+                if (allBingo) note = '（正解者は全員ビンゴ達成済みのため、全員から抽選）';
+                else if (excluded > 0) note = `（ビンゴ達成済みの${excluded}人を除いて抽選）`;
+                resultElement.textContent = `🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！🎉${note}`;
+                resultElement.style.color = 'green';
+
+                document.getElementById('quiz-control-section').style.display = 'none';
+                clearBonusInput();
+                document.getElementById('bonus-section').style.display = 'block';
+                document.getElementById('bonus-prefecture-input').focus();
+            });
         } else {
             resultElement.textContent = `❌ 正解者はいませんでした... (正解: ${correctMark})`;
             resultElement.style.color = 'red';
@@ -882,7 +918,7 @@ function endQuizReceptionAndJudge() {
         // 4. クイズ終了後の回答ドキュメントの削除 (重要)
         const deletePromises = allAnswers.map(ans => db.collection('quizAnswers').doc(ans.userId).delete());
         
-        return Promise.all(deletePromises);
+        return Promise.all([lotteryPromise, ...deletePromises]);
     })
     .catch(error => {
         console.error("Quiz submission/judgment failed:", error);
@@ -931,7 +967,7 @@ function applyBonusDraw() {
 }
 
 function resetGame() {
-    if (!confirm("警告：抽選履歴・クイズの回答履歴・ビンゴ順位・クイズ正解数ランキングがすべて消去されます。本当にリセットしますか？")) {
+    if (!confirm("警告：抽選履歴・クイズの回答履歴・ビンゴ順位・9マス全空き順位・クイズ正解数ランキングがすべて消去されます。本当にリセットしますか？")) {
         return;
     }
 
@@ -943,6 +979,7 @@ function resetGame() {
             fastestAnswer: [],
         }, { merge: true }),
         deleteAllDocs('bingoWinners'),
+        deleteAllDocs('fullCardWinners'),
         deleteAllDocs('quizStats'),
         deleteAllDocs('quizAnswers')
     ])
@@ -994,49 +1031,60 @@ window.debugForceDraw = function (prefectureName) {
 // F12 → ResetGame() で「🔄 ゲームをリセット」ボタンと同じ処理を実行する
 window.ResetGame = resetGame;
 
-// 親機: ビンゴ達成順位とクイズ正解数ランキングを取得して表示する
+// 親機: ビンゴ達成順位・9マス全空き順位・クイズ正解数ランキングを取得して表示する
+// 景品の対象人数(上位N名)
+const BINGO_PRIZE_COUNT = 10;
+const FULL_CARD_PRIZE_COUNT = 5;
+const QUIZ_PRIZE_COUNT = 5;
+
+// 順位つきでリストを描画する。同順位(同点)はN位より下でも、N位と同じ順位なら全員表示する
+function renderRanking(listEl, rows, limit, emptyText, labelOf) {
+    if (rows.length === 0) {
+        listEl.innerHTML = `<li>${emptyText}</li>`;
+        return;
+    }
+    listEl.innerHTML = '';
+    let rank = 0;
+    rows.forEach((row, i) => {
+        if (i === 0 || row.score !== rows[i - 1].score) rank = i + 1;
+        if (rank > limit) return;
+        const li = document.createElement('li');
+        li.value = rank;
+        li.textContent = labelOf(row);
+        listEl.appendChild(li);
+    });
+}
+
 function showFinalResults() {
     const box = document.getElementById('final-results-box');
     const bingoList = document.getElementById('bingo-ranking-list');
+    const fullCardList = document.getElementById('full-card-ranking-list');
     const quizRankingList = document.getElementById('quiz-ranking-list');
-    if (!box || !bingoList || !quizRankingList) return;
+    if (!box || !bingoList || !fullCardList || !quizRankingList) return;
 
     box.style.display = 'block';
-    bingoList.innerHTML = '<li>読み込み中...</li>';
-    quizRankingList.innerHTML = '<li>読み込み中...</li>';
+    [bingoList, fullCardList, quizRankingList].forEach(el => { el.innerHTML = '<li>読み込み中...</li>'; });
 
-    db.collection('bingoWinners').orderBy('achievedAt', 'asc').get()
-        .then(snapshot => {
-            if (snapshot.empty) {
-                bingoList.innerHTML = '<li>まだビンゴ達成者がいません。</li>';
-                return;
-            }
-            bingoList.innerHTML = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const li = document.createElement('li');
-                li.textContent = `${data.userId}（${data.bingoCount}ライン）`;
-                bingoList.appendChild(li);
+    // 達成順(早い順)。時刻が同じ(同時)の場合のみ同順位にならないよう、順位は並び順そのままにする
+    const loadByTime = (collectionName, listEl, limit, emptyText) =>
+        db.collection(collectionName).orderBy('achievedAt', 'asc').get()
+            .then(snapshot => {
+                const rows = snapshot.docs.map((doc, i) => ({ userId: doc.data().userId, score: i }));
+                renderRanking(listEl, rows, limit, emptyText, row => row.userId);
+            })
+            .catch(error => {
+                console.error(`${collectionName}の取得に失敗しました:`, error);
+                listEl.innerHTML = '<li>取得に失敗しました。</li>';
             });
-        })
-        .catch(error => {
-            console.error("ビンゴ順位の取得に失敗しました:", error);
-            bingoList.innerHTML = '<li>取得に失敗しました。</li>';
-        });
+
+    loadByTime('bingoWinners', bingoList, BINGO_PRIZE_COUNT, 'まだビンゴ達成者がいません。');
+    loadByTime('fullCardWinners', fullCardList, FULL_CARD_PRIZE_COUNT, 'まだ9マス全空きの人がいません。');
 
     db.collection('quizStats').orderBy('correctCount', 'desc').get()
         .then(snapshot => {
-            if (snapshot.empty) {
-                quizRankingList.innerHTML = '<li>まだ正解者がいません。</li>';
-                return;
-            }
-            quizRankingList.innerHTML = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const li = document.createElement('li');
-                li.textContent = `${data.userId}（${data.correctCount}問正解）`;
-                quizRankingList.appendChild(li);
-            });
+            const rows = snapshot.docs.map(doc => ({ userId: doc.data().userId, score: doc.data().correctCount }));
+            renderRanking(quizRankingList, rows, QUIZ_PRIZE_COUNT, 'まだ正解者がいません。',
+                row => `${row.userId}（${row.score}問正解）`);
         })
         .catch(error => {
             console.error("クイズ正解数ランキングの取得に失敗しました:", error);
