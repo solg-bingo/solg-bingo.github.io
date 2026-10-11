@@ -1055,40 +1055,99 @@ function renderRanking(listEl, rows, limit, emptyText, labelOf) {
     });
 }
 
+// 景品当選者を決める。1人1つまで。難しい賞から順に確定し、すでに当選した人は飛ばして繰り下げる
+// 賞の順番: 9マス全空き → クイズ正解数 → ビンゴ達成
+// rows は成績の良い順。ties が true の賞は、境目で同点の人が出たら「同点」として別枠で返す
+function pickPrizeWinners(rows, count, taken, ties) {
+    const candidates = rows.filter(r => !taken.has(r.userId));
+    const skipped = rows.slice(0, rows.indexOf(candidates[count - 1]) + 1 || rows.length)
+        .filter(r => taken.has(r.userId)).map(r => r.userId);
+    if (candidates.length <= count) return { winners: candidates, tied: [], skipped };
+    if (!ties) return { winners: candidates.slice(0, count), tied: [], skipped };
+    const cutoff = candidates[count - 1].score;
+    const above = candidates.filter(r => r.score > cutoff);
+    const atCutoff = candidates.filter(r => r.score === cutoff);
+    if (above.length + atCutoff.length === count) return { winners: candidates.slice(0, count), tied: [], skipped };
+    return { winners: above, tied: atCutoff, tiedSlots: count - above.length, skipped };
+}
+
+function renderPrizeWinners(box, bingoRows, fullCardRows, quizRows) {
+    const taken = new Set();
+    const pending = new Set(); // 同点で、まだ当選が決まっていない人
+    const prizes = [
+        { title: '🌟 9マス全空き賞', rows: fullCardRows, count: FULL_CARD_PRIZE_COUNT, ties: false, label: r => r.userId },
+        { title: '🧠 クイズ正解数賞', rows: quizRows, count: QUIZ_PRIZE_COUNT, ties: true, label: r => `${r.userId}（${r.score}問正解）` },
+        { title: '🎊 ビンゴ達成賞', rows: bingoRows, count: BINGO_PRIZE_COUNT, ties: false, label: r => r.userId }
+    ];
+    box.innerHTML = '';
+    prizes.forEach(prize => {
+        const result = pickPrizeWinners(prize.rows, prize.count, taken, prize.ties);
+        result.winners.forEach(r => taken.add(r.userId));
+        result.tied.forEach(r => pending.add(r.userId));
+
+        const h = document.createElement('h4');
+        h.textContent = `${prize.title}（${prize.count}名）`;
+        box.appendChild(h);
+
+        const ol = document.createElement('ol');
+        if (result.winners.length === 0 && result.tied.length === 0) {
+            ol.innerHTML = '<li>該当者なし</li>';
+        }
+        result.winners.forEach(r => {
+            const li = document.createElement('li');
+            li.textContent = prize.label(r) + (pending.has(r.userId) ? '（※クイズ同点の抽選に当たった場合は繰り下げ）' : '');
+            ol.appendChild(li);
+        });
+        box.appendChild(ol);
+
+        if (result.tied.length > 0) {
+            const p = document.createElement('p');
+            p.className = 'prize-note';
+            p.textContent = `⚠️ 同点のため、次の${result.tied.length}人から${result.tiedSlots}名をじゃんけん等で決めてください：` +
+                result.tied.map(prize.label).join('、');
+            box.appendChild(p);
+        }
+        if (result.skipped.length > 0) {
+            const p = document.createElement('p');
+            p.className = 'prize-note';
+            p.textContent = `※他の賞で当選済みのため繰り下げ：${result.skipped.join('、')}`;
+            box.appendChild(p);
+        }
+    });
+}
+
 function showFinalResults() {
     const box = document.getElementById('final-results-box');
     const bingoList = document.getElementById('bingo-ranking-list');
     const fullCardList = document.getElementById('full-card-ranking-list');
     const quizRankingList = document.getElementById('quiz-ranking-list');
-    if (!box || !bingoList || !fullCardList || !quizRankingList) return;
+    const prizeBox = document.getElementById('prize-winners');
+    if (!box || !bingoList || !fullCardList || !quizRankingList || !prizeBox) return;
 
     box.style.display = 'block';
     [bingoList, fullCardList, quizRankingList].forEach(el => { el.innerHTML = '<li>読み込み中...</li>'; });
+    prizeBox.textContent = '読み込み中...';
 
-    // 達成順(早い順)。時刻が同じ(同時)の場合のみ同順位にならないよう、順位は並び順そのままにする
-    const loadByTime = (collectionName, listEl, limit, emptyText) =>
+    // 達成順(早い順)。順位は並び順そのまま
+    const loadByTime = collectionName =>
         db.collection(collectionName).orderBy('achievedAt', 'asc').get()
-            .then(snapshot => {
-                const rows = snapshot.docs.map((doc, i) => ({ userId: doc.data().userId, score: i }));
-                renderRanking(listEl, rows, limit, emptyText, row => row.userId);
-            })
-            .catch(error => {
-                console.error(`${collectionName}の取得に失敗しました:`, error);
-                listEl.innerHTML = '<li>取得に失敗しました。</li>';
-            });
+            .then(snapshot => snapshot.docs.map((doc, i) => ({ userId: doc.data().userId, score: i })));
+    const loadQuiz = () =>
+        db.collection('quizStats').orderBy('correctCount', 'desc').get()
+            .then(snapshot => snapshot.docs.map(doc => ({ userId: doc.data().userId, score: doc.data().correctCount })));
 
-    loadByTime('bingoWinners', bingoList, BINGO_PRIZE_COUNT, 'まだビンゴ達成者がいません。');
-    loadByTime('fullCardWinners', fullCardList, FULL_CARD_PRIZE_COUNT, 'まだ9マス全空きの人がいません。');
-
-    db.collection('quizStats').orderBy('correctCount', 'desc').get()
-        .then(snapshot => {
-            const rows = snapshot.docs.map(doc => ({ userId: doc.data().userId, score: doc.data().correctCount }));
-            renderRanking(quizRankingList, rows, QUIZ_PRIZE_COUNT, 'まだ正解者がいません。',
+    Promise.all([loadByTime('bingoWinners'), loadByTime('fullCardWinners'), loadQuiz()])
+        .then(([bingoRows, fullCardRows, quizRows]) => {
+            renderRanking(bingoList, bingoRows, BINGO_PRIZE_COUNT, 'まだビンゴ達成者がいません。', row => row.userId);
+            renderRanking(fullCardList, fullCardRows, FULL_CARD_PRIZE_COUNT, 'まだ9マス全空きの人がいません。', row => row.userId);
+            renderRanking(quizRankingList, quizRows, QUIZ_PRIZE_COUNT, 'まだ正解者がいません。',
                 row => `${row.userId}（${row.score}問正解）`);
+            renderPrizeWinners(prizeBox, bingoRows, fullCardRows, quizRows);
         })
         .catch(error => {
-            console.error("クイズ正解数ランキングの取得に失敗しました:", error);
-            quizRankingList.innerHTML = '<li>取得に失敗しました。</li>';
+            console.error("最終結果の取得に失敗しました:", error);
+            [bingoList, fullCardList, quizRankingList].forEach(el => { el.innerHTML = '<li>取得に失敗しました。</li>'; });
+            prizeBox.textContent = '取得に失敗しました。';
         });
 }
 

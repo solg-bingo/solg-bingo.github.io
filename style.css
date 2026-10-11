@@ -235,3 +235,11 @@ button {
 
 }
 
+.results-box h4 {
+    margin: 12px 0 4px;
+}
+.prize-note {
+    font-size: 0.95em;
+    color: #555;
+    margin: 2px 0;
+}
