@@ -121,14 +121,14 @@ let prefectureImages = {
     "茨城町": "images/ibaraki.jpg",
     "石岡市": "images/ishioka.jpg",
     "常総市": "images/joso.png",
-    "加賀市": "images/kaga.jpg",
+    "加賀市": "images/shapes/kaga.svg",
     "沼田市": "images/numata.jpg",
     "小千谷市": "images/odiya.jpg",
     "佐野市": "images/sano.png",
     "札幌市": "images/sapporo.png",
     "城里町": "images/shirosato.png",
     "高岡市": "images/takaoka.png",
-    "高崎市": "images/takasaki.jpg",
+    "高崎市": "images/shapes/takasaki.svg",
     "栃木市": "images/tochigi.jpg",
     "土浦市": "images/tsuchiura.jpg",
     "つくば市": "images/tsukuba.jpg",
@@ -142,7 +142,9 @@ let prefectureImages = {
 let prefectureImageCredits = {
     "蓮田市": "蓮田市マスコットキャラクター「はすぴぃ」",
     "鴻巣市": "鴻巣市メインキャラクター「ひなちゃん」",
-    "三郷市": "三郷市マスコットキャラクター「かいちゃん&つぶちゃん」"
+    "三郷市": "三郷市マスコットキャラクター「かいちゃん&つぶちゃん」",
+    "加賀市": "出典: 国土数値情報(国土交通省)を加工して作成",
+    "高崎市": "出典: 国土数値情報(国土交通省)を加工して作成"
 };
 
 let currentDrawnPrefectures = [];
