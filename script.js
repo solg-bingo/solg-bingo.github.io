@@ -599,8 +599,9 @@ function resetQuizState() {
     document.getElementById('quiz-trigger-button').disabled = false;
     document.getElementById('draw-next-button').disabled = false; 
     
-    document.getElementById('quiz-control-section').style.display = 'block'; 
-    document.getElementById('bonus-section').style.display = 'none'; 
+    document.getElementById('quiz-control-section').style.display = 'block';
+    document.getElementById('bonus-section').style.display = 'none';
+    clearBonusInput();
 
   // ★★★ 修正箇所: 結果表示エリアのテキストをクリア ★★★
     document.getElementById('quiz-result').textContent = ""; // 判定結果メッセージをクリア
@@ -860,8 +861,10 @@ function endQuizReceptionAndJudge() {
             resultElement.textContent = `🎉 当選者ID: ${winner.userId}！ボーナス権利獲得！🎉`;
             resultElement.style.color = 'green';
             
-            document.getElementById('quiz-control-section').style.display = 'none'; 
+            document.getElementById('quiz-control-section').style.display = 'none';
+            clearBonusInput();
             document.getElementById('bonus-section').style.display = 'block';
+            document.getElementById('bonus-prefecture-input').focus();
         } else {
             resultElement.textContent = `❌ 正解者はいませんでした... (正解: ${correctMark})`;
             resultElement.style.color = 'red';
@@ -885,6 +888,14 @@ function endQuizReceptionAndJudge() {
         console.error("Quiz submission/judgment failed:", error);
         document.getElementById('quiz-result').textContent = "判定エラーが発生しました。コンソールを確認してください。";
     });
+}
+
+// 当選者が開けるマスの入力欄を空にする(前回の入力やエラーメッセージを残さない)
+function clearBonusInput() {
+    const bonusPrefectureInput = document.getElementById('bonus-prefecture-input');
+    const bonusMessage = document.getElementById('bonus-message');
+    if (bonusPrefectureInput) bonusPrefectureInput.value = '';
+    if (bonusMessage) bonusMessage.textContent = '';
 }
 
 function applyBonusDraw() {
